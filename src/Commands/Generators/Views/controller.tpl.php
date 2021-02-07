@@ -169,10 +169,6 @@ class {class} extends {extends}
 		//
 	}
 <?php else: ?>
-	public function index()
-	{
-		//
-	}
 
 	public function index()
 	{
