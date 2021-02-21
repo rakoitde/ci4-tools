@@ -1,5 +1,5 @@
 <!-- Start: Breadcrumb -->
-<?php if (!isset($breadcrumb)) { $breadcrumb = []; } ?>
+<?php $bread_crumb = $brea_dcrumb ?? []; ?>
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
 <?php foreach ($breadcrumb as $bc) : ?>
