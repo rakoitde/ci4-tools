@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use Config\Services;
 
-class Home extends BaseController
+class DefaultController extends BaseController
 {
 
 	/**
@@ -15,23 +15,46 @@ class Home extends BaseController
 	protected $modelName = 'App\Controllers\Models\PermissionsModel';
 
 	/**
+	 * holds breadcrumb
+	 *
+	 * @var array
+	 */
+	protected $breadcrumb = [];
+
+	/**
+	 * holds alerts
+	 *
+	 * [ 'html' => 'Message with <a href="#" class="alert-link">link</a>!', 'color' => 'success'];
+	 # Colors: primary, secondary, success, danger, warning, info, light, dark
+	 *
+	 * @var array
+	 */
+	protected $alerts = [];
+
+	/**
+	 * Helper
+	 *
+	 * @var array
+	 */
+	protected $helpers = ['auth','form'];
+
+	/**
 	 * Index method.
 	 */
 	public function index()
 	{
-		# Colors: primary, secondary, success, danger, warning, info, light, dark
-		$alerts[] = [
-			'html'=>'Alert with success color and <a href="#" class="alert-link">an example link</a>!',
-			'success'];
-		$breadcrumb[] = ['text'=>'Home',    'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Library', 'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Library', 'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Data',    'active'=>true,  'href'=>'#'];
+
+		$this->alerts[] = [
+			'html' => 'Alert with success color and <a href="#" class="alert-link">an example link</a>!',
+			'color' => 'success'];
+		$this->breadcrumb[] = ['text'=>'Index', 'active'=>true, 'href'=>'#'];
 
 		// Collect Data
-		$data['alerts'] = $alerts;
-		$data['breadcrumb'] = $breadcrumb;
-		$data['model'] = $this->model;
+		$data = {
+			'breadcrumb' => $this->breadcrumb,
+			'alerts'     => $this->alerts,
+			'model'      => $this->model,
+		}
 
 		return view('DefaultPage', $data);
 
@@ -42,19 +65,18 @@ class Home extends BaseController
 	 */
 	public function sidebar()
 	{
-		# Colors: primary, secondary, success, danger, warning, info, light, dark
-		$alerts[] = [
-			'html'=>'Alert with success color and <a href="#" class="alert-link">an example link</a>!',
-			'success'];
-		$breadcrumb[] = ['text'=>'Home',    'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Library', 'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Library', 'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Data',    'active'=>true,  'href'=>'#'];
+
+		$this->alerts[] = [
+			'html' => 'Alert with success color and <a href="#" class="alert-link">an example link</a>!',
+			'color' => 'success'];
+		$this->breadcrumb[] = ['text'=>'Sidebar', 'active'=>true, 'href'=>'#'];
 
 		// Collect Data
-		#$data['alerts'] = $alerts;
-		$data['breadcrumb'] = $breadcrumb;
-		$data['model'] = $this->model;
+		$data = {
+			'breadcrumb' => $this->breadcrumb,
+			'alerts'     => $this->alerts,
+			'model'      => $this->model,
+		}
 
 		return view('DefaultSidebarPage', $data);
 
@@ -75,27 +97,23 @@ class Home extends BaseController
 								->orLike('description',$ts)
 								->paginate($perPage);
 
-		# Colors: primary, secondary, success, danger, warning, info, light, dark
-		$alerts[] = [
-			'html'=>'Alert with success color and <a href="#" class="alert-link">an example link</a>!',
-			'success'];
-		$breadcrumb[] = ['text'=>'Home',    'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Library', 'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Library', 'active'=>false, 'href'=>'#'];
-		$breadcrumb[] = ['text'=>'Data',    'active'=>true,  'href'=>'#'];
+		$this->alerts[] = [
+			'html' => 'Alert with success color and <a href="#" class="alert-link">an example link</a>!',
+			'color' => 'success'];
+		$this->breadcrumb[] = ['text'=>'Sidebar', 'active'=>true, 'href'=>'#'];
 
 		// Collect Data
-
-		$options = [
-			'breadcrumb' => $breadcrumb,
-			'model' => $this->model,
-			'config' => $this->config,
-			'entities' => $entities,
-			'pager' => $this->model->pager,
-			'request' => $this->request,
+		$data = [
+			'breadcrumb' => $this->breadcrumb,
+			'alerts'     => $this->alerts,
+			'model'      => $this->model,
+			'config'     => $this->config,
+			'entities'   => $entities,
+			'pager'      => $this->model->pager,
+			'request'    => $this->request,
 		];
 
-		return view('DefaultTablePage', $options);
+		return view('DefaultTablePage', $data);
 
 	}
 
@@ -106,6 +124,9 @@ class Home extends BaseController
 	{
 		$this->config = config("idoit");
 		$this->model = model($this->modelName);
+
+		$this->breadcrumb[] = ['text'=>'Start', 'active'=>false, 'href'=>'#'];
+		$this->breadcrumb[] = ['text'=>'Index', 'active'=>false, 'href'=>'#'];
 	}
 
 }

@@ -11,7 +11,7 @@
                     <!-- Start: Nav Items -->
                     <li class="nav-item w-100 btn text-left pl-0 py-0">
                         <a class="nav-link active pl-0" href="#">
-                        Dashboard <span class="sr-only">(current)</span>
+                        Dashboard
                     </a>
                     </li>
                     <li class="nav-item w-100 btn text-left pl-0 py-0 dropdown">

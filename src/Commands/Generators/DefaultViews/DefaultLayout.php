@@ -13,9 +13,6 @@
     <link href="<?= Base_Url('css/bootstrap.css') ?>" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="<?= Base_Url('css/na_vbar-top-fixed.css') ?>" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
     <link href="<?= Base_Url('css/sidebar.css') ?>" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
@@ -42,14 +39,13 @@
     <?= $this->renderSection('content') ?>
 </div>
 
-<!-- Start: Custom JavaScript -->
-<?= $this->renderSection('custom_js') ?>
-<!-- End: Custom JavaScript -->
 
 </body>
 
 <script src="<?= Base_Url('js/jquery-3.5.1.min.js') ?>"></script>
 <script src="<?= Base_Url('js/bootstrap.bundle.min.js') ?>"></script>
-<script src="<?= Base_Url('js/dashboard.js') ?>"></script>
+<!-- Start: Custom JavaScript -->
+<?= $this->renderSection('custom_js') ?>
+<!-- End: Custom JavaScript -->
 
 </html>

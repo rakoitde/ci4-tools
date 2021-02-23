@@ -51,14 +51,13 @@
     </div>
 </div>
 
-<!-- Start: Custom JavaScript -->
-<?= $this->renderSection('custom_js') ?>
-<!-- End: Custom JavaScript -->
 
 </body>
 
 <script src="<?= Base_Url('js/jquery-3.5.1.min.js') ?>"></script>
 <script src="<?= Base_Url('js/bootstrap.bundle.min.js') ?>"></script>
-<script src="<?= Base_Url('js/dashboard.js') ?>"></script>
+<!-- Start: Custom JavaScript -->
+<?= $this->renderSection('custom_js') ?>
+<!-- End: Custom JavaScript -->
 
 </html>
