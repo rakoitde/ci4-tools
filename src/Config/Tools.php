@@ -35,4 +35,18 @@ class Tools extends BaseConfig
 	 */
 	public $components = ['Alert', 'Breadcrumb', 'Chart', 'Pagination', 'table'];
 
+	/**
+	 * Development Databasename
+	 *
+	 * @var string
+	 */
+	public $db_group_dev = 'default';
+
+	/**
+	 * Productive Databasename
+	 *
+	 * @var string
+	 */
+	public $db_group_prod = 'live';
+
 }

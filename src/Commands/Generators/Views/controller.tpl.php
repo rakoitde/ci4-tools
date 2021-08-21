@@ -170,17 +170,43 @@ class {class} extends {extends}
 	}
 <?php else: ?>
 
+	/**
+	 * the model name
+	 *
+	 * @var string
+	 */
+	protected $modelName = 'App\Controllers\Models\ModelName';
+
+	/**
+	 * Index method.
+	 */
 	public function index()
 	{
-
 		# Colors: primary, secondary, success, danger, warning, info, light, dark
-		$alerts[] = ['html'=>'Alert with success color and <a href="#" class="alert-link">an example link</a>!','success'];
+		$alerts[] = [
+			'html'=>'Alert with success color and <a href="#" class="alert-link">an example link</a>!',
+			'success'];
+		$breadcrumb[] = ['text'=>'Home',    'active'=>false, 'href'=>'#'];
+		$breadcrumb[] = ['text'=>'Library', 'active'=>false, 'href'=>'#'];
+		$breadcrumb[] = ['text'=>'Library', 'active'=>false, 'href'=>'#'];
+		$breadcrumb[] = ['text'=>'Data',    'active'=>true,  'href'=>'#'];
 
 		// Collect Data
 		$data['alerts'] = $alerts;
+		$data['breadcrumb'] = $breadcrumb;
+		$data['model'] = $this->model;
 
 		return view('DefaultPage', $data);
 
 	}
+
+	/**
+	 * Constructor
+	 */
+	public function __construct()
+	{
+		$this->model = model($this->modelName);
+	}
+
 <?php endif ?>
 }
