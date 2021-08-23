@@ -6,7 +6,7 @@ use App\Controllers\BaseController;
 
 use Config\Services;
 
-class CompareDatabases extends BaseController
+class DatabaseCompare extends BaseController
 {
 
     protected $db_dev;
@@ -17,7 +17,6 @@ class CompareDatabases extends BaseController
     function index()
     {
 
-d($this->config);
         /*
          * This will become a list of SQL Commands to run on the Live database to bring it up to date
          */
@@ -350,39 +349,39 @@ d($this->config);
             foreach ($tables as $table)
             {
 
-#d($table);
-$table_constrains_development[$table] = $this->getConstraints($this->db_dev, $table);
-$table_constrains_live[$table] = $this->getConstraints($this->db_prod, $table);
+        #d($table);
+        $table_constrains_development[$table] = $this->getConstraints($this->db_dev, $table);
+        $table_constrains_live[$table] = $this->getConstraints($this->db_prod, $table);
 
-// constraints exists
-$existing_constraints = [];
-foreach ($table_constrains_live[$table] as $constraint) {
-    $existing_constraints[] = "ALTER TABLE `$table` ADD CONSTRAINT `{$constraint['CONSTRAINT_NAME']}` FOREIGN KEY (`{$constraint['COLUMN_NAME']}`) REFERENCES `{$constraint['REFERENCED_TABLE_NAME']}` (`{$constraint['REFERENCED_COLUMN_NAME']}`) ON DELETE {$constraint['DELETE_RULE']} ON UPDATE {$constraint['UPDATE_RULE']};";
-}
+        // constraints exists
+        $existing_constraints = [];
+        foreach ($table_constrains_live[$table] as $constraint) {
+            $existing_constraints[] = "ALTER TABLE `$table` ADD CONSTRAINT `{$constraint['CONSTRAINT_NAME']}` FOREIGN KEY (`{$constraint['COLUMN_NAME']}`) REFERENCES `{$constraint['REFERENCED_TABLE_NAME']}` (`{$constraint['REFERENCED_COLUMN_NAME']}`) ON DELETE {$constraint['DELETE_RULE']} ON UPDATE {$constraint['UPDATE_RULE']};";
+        }
 
-// add constraints
-$new_constraints = [];
-$sql_commands_to_run_cache = [];
-foreach ($table_constrains_development[$table] as $constraint) {
-    $new_constraint = "ALTER TABLE `$table` ADD CONSTRAINT `{$constraint['CONSTRAINT_NAME']}` FOREIGN KEY (`{$constraint['COLUMN_NAME']}`) REFERENCES `{$constraint['REFERENCED_TABLE_NAME']}` (`{$constraint['REFERENCED_COLUMN_NAME']}`) ON DELETE {$constraint['DELETE_RULE']} ON UPDATE {$constraint['UPDATE_RULE']};";
-    $new_constraints[] = $new_constraint;
-    if (!in_array($new_constraint, $existing_constraints)) {
-        #$sql_commands_to_run[] = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint['CONSTRAINT_NAME']}`;";
-        $sql_commands_to_run_cache[] = $new_constraint;
-    };
-}
+        // add constraints
+        $new_constraints = [];
+        $sql_commands_to_run_cache = [];
+        foreach ($table_constrains_development[$table] as $constraint) {
+            $new_constraint = "ALTER TABLE `$table` ADD CONSTRAINT `{$constraint['CONSTRAINT_NAME']}` FOREIGN KEY (`{$constraint['COLUMN_NAME']}`) REFERENCES `{$constraint['REFERENCED_TABLE_NAME']}` (`{$constraint['REFERENCED_COLUMN_NAME']}`) ON DELETE {$constraint['DELETE_RULE']} ON UPDATE {$constraint['UPDATE_RULE']};";
+            $new_constraints[] = $new_constraint;
+            if (!in_array($new_constraint, $existing_constraints)) {
+                #$sql_commands_to_run[] = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint['CONSTRAINT_NAME']}`;";
+                $sql_commands_to_run_cache[] = $new_constraint;
+            };
+        }
 
-// delete constraints
-foreach ($table_constrains_live[$table] as $constraint) {
-    $existing_constraint = "ALTER TABLE `$table` ADD CONSTRAINT `{$constraint['CONSTRAINT_NAME']}` FOREIGN KEY (`{$constraint['COLUMN_NAME']}`) REFERENCES `{$constraint['REFERENCED_TABLE_NAME']}` (`{$constraint['REFERENCED_COLUMN_NAME']}`) ON DELETE {$constraint['DELETE_RULE']} ON UPDATE {$constraint['UPDATE_RULE']};";
-    $drop_constraint = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint['CONSTRAINT_NAME']}`;";
+        // delete constraints
+        foreach ($table_constrains_live[$table] as $constraint) {
+            $existing_constraint = "ALTER TABLE `$table` ADD CONSTRAINT `{$constraint['CONSTRAINT_NAME']}` FOREIGN KEY (`{$constraint['COLUMN_NAME']}`) REFERENCES `{$constraint['REFERENCED_TABLE_NAME']}` (`{$constraint['REFERENCED_COLUMN_NAME']}`) ON DELETE {$constraint['DELETE_RULE']} ON UPDATE {$constraint['UPDATE_RULE']};";
+            $drop_constraint = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint['CONSTRAINT_NAME']}`;";
 
-    if (!in_array($existing_constraint, $new_constraints)) {
-        $sql_commands_to_run[] = $drop_constraint;   
-    }
-}
+            if (!in_array($existing_constraint, $new_constraints)) {
+                $sql_commands_to_run[] = $drop_constraint;   
+            }
+        }
 
-$sql_commands_to_run = array_merge($sql_commands_to_run, $sql_commands_to_run_cache);
+        $sql_commands_to_run = array_merge($sql_commands_to_run, $sql_commands_to_run_cache);
 
                 $table_constrains_development[$table] = $this->db_dev->getForeignKeyData($table);
                 $table_constrains_live[$table] = $this->db_prod->getForeignKeyData($table);
@@ -395,13 +394,8 @@ $sql_commands_to_run = array_merge($sql_commands_to_run, $sql_commands_to_run_ca
                     #$sql_commands_to_run[] = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint->constraint_name}`;"; 
                 }
 
-#d($sql_commands_to_run);
-#ALTER TABLE `auth_groups_permissions` DROP FOREIGN KEY `auth_groups_permissions_ibfk_2`; 
-#ALTER TABLE `auth_groups_permissions` ADD CONSTRAINT `_auth_groups_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `auth_permissions`(`id`) ON DELETE CASCADE ON UPDATE RESTRICT;
-
             }
         }
-#d($table_constrains_development, $table_constrains_live);
 
         /*
          * add, remove or update any fields in $table_structure_live

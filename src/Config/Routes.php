@@ -8,7 +8,9 @@ $routes->group(
     
         #$routes->get('/',       'AuthController::index', ['filter' => 'haspermissions:Auth.Module']);
 
-        $routes->add('comparedb',         'CompareDatabases::index');
+        $routes->add('comparedb',           'DatabaseCompare::index');
+        $routes->add('backupdb',            'DatabaseBackup::index');
+        $routes->add('db/(:segment)/backup','DatabaseBackup::backup/$1');
 
 
     }
