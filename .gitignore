@@ -28,3 +28,4 @@ phpunit
 .env
 .vagrant
 Vagrantfile
+src/.DS_Store
