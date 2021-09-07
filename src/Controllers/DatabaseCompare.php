@@ -32,12 +32,14 @@ class DatabaseCompare extends BaseController
          * list any tables that need to be created or dropped
          */
         $tables_to_create = array_diff($development_tables, $live_tables);
-        $tables_to_drop = array_diff($live_tables, $development_tables);
+        $tables_to_drop   = array_diff($live_tables, $development_tables);
 
         /**
          * Create/Drop any tables that are not in the Live database
          */
-        $sql_commands_to_run = (is_array($tables_to_create) && !empty($tables_to_create)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_create, 'create')) : array();
+        #$sql_commands_to_run = (is_array($tables_to_create) && !empty($tables_to_create)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_create, 'create')) : array();
+
+        $sql_commands_to_run = array_merge($sql_commands_to_run, $this->manage_tables($tables_to_create, 'create'));
 
         #$sql_commands_to_run = (is_array($tables_to_drop) && !empty($tables_to_drop)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_drop, 'drop')) : array();
         $sql_commands_to_run = array_merge($sql_commands_to_run, $this->manage_tables($tables_to_drop, 'drop'));
@@ -54,7 +56,7 @@ class DatabaseCompare extends BaseController
         #$sql_commands_to_run = (is_array($tables_to_update) && !empty($tables_to_update)) ? array_merge($sql_commands_to_run, $this->update_existing_tables($tables_to_update)) : '';
         $sql_commands_to_run = array_merge($sql_commands_to_run, $this->update_existing_tables($tables_to_update));
 
-        $sql_commands_to_run = $this->determine_constrains_changes($development_tables);
+        $sql_commands_to_run = array_merge($sql_commands_to_run, $this->determine_constrains_changes($development_tables));
 
         if (is_array($sql_commands_to_run) && !empty($sql_commands_to_run))
         {

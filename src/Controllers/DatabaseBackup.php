@@ -27,13 +27,13 @@ class DatabaseBackup extends BaseController
 
 
 $myTime = new Time('now', 'Europe/Berlin', 'de_DE');
-d($myTime);
+#d($myTime);
 $myTime = new Time('now');
-d("full_backup_".str_replace(" ", "_", $myTime->toDateTimeString() ).".sql");
+#d("full_backup_".str_replace(" ", "_", $myTime->toDateTimeString() ).".sql");
 
 
 
-d($this->model);
+#d($this->model);
 
         // Collect Data
         $data = [
@@ -43,7 +43,7 @@ d($this->model);
             "db" => \Config\Database::connect($data['job']['dbgroup'] ?? 'default'),
         ];
         $data["tables"] = $data['db']->listTables();
-d($data['tables']);
+#d($data['tables']);
         return view("Rakoitde\Tools\Views\DatabaseBackupView", $data);
 
     }

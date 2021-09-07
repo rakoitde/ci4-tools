@@ -50,11 +50,11 @@ class DefaultController extends BaseController
 		$this->breadcrumb[] = ['text'=>'Index', 'active'=>true, 'href'=>'#'];
 
 		// Collect Data
-		$data = {
+		$data = [
 			'breadcrumb' => $this->breadcrumb,
 			'alerts'     => $this->alerts,
 			'model'      => $this->model,
-		}
+		];
 
 		return view('DefaultPage', $data);
 
@@ -72,11 +72,11 @@ class DefaultController extends BaseController
 		$this->breadcrumb[] = ['text'=>'Sidebar', 'active'=>true, 'href'=>'#'];
 
 		// Collect Data
-		$data = {
+		$data = [
 			'breadcrumb' => $this->breadcrumb,
 			'alerts'     => $this->alerts,
 			'model'      => $this->model,
-		}
+		];
 
 		return view('DefaultSidebarPage', $data);
 

@@ -80,7 +80,10 @@
     <div class="col-lg-3 col-md-12 col-sm-12 col-12 mb-3">
       <ul class="list-group list-group-flush">
         <li class="list-group-item"><h4>Backups & Restore</h4></li>
-        <li class="list-group-item">db_rakoitde_2021-09-12_11-23-59.sql</li>
+        <li class="list-group-item">db_rakoitde_2021-09-12_11-23-59.sql
+        <div class="progress" style="height: 4px;">
+          <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+        </li>
         <li class="list-group-item">tbl_2021-09-12_11-23-59.sql</li>
       </ul>
     </div>

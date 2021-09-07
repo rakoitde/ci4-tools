@@ -55,7 +55,7 @@
   </div>
   <!-- Start: Project Tab Controller -->
   <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
-    < ?= $this->include('layout/_tab3') ?>
+    <?= $this->include('Rakoitde\Tools\Views\DatabaseBackupSync') ?>
   </div>
   <!-- Start: Project Tab Controller -->
   <div class="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
@@ -90,8 +90,10 @@
                 $code.data("loaded","true")
             });
           }
-
         })
+
+        // Load Sync
+        $("#sync_sql_commands").load("comparedb");
 
         // Wizard
         $.fn.wizard.logging = true;
