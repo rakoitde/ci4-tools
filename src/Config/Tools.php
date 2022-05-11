@@ -19,7 +19,10 @@ class Tools extends BaseConfig
 	 *
 	 * @var array
 	 */
-	public $ignoreNamespaces = ['CodeIgniter','Config'];
+	public $ignoreNamespaces = [
+		'CodeIgniter',
+		'Config',
+	];
 
 	/**
 	 * Generatiors ini filename
@@ -33,7 +36,13 @@ class Tools extends BaseConfig
 	 *
 	 * @var array
 	 */
-	public $components = ['Alert', 'Breadcrumb', 'Chart', 'Pagination', 'table'];
+	public $components = [
+		'Alert',
+		'Breadcrumb',
+		'Chart',
+		'Pagination',
+		'table',
+	];
 
 	/**
 	 * Development Databasename

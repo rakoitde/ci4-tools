@@ -34,8 +34,10 @@ trait GenTrait
 		$autoload = new \Config\Autoload();
 
 		$namespaces = [];
-		foreach ($autoload->psr4 as $key => $val) {
-			if (!in_array($key, $this->config->ignoreNamespaces)) {
+		foreach ($autoload->psr4 as $key => $val)
+		{
+			if (! in_array($key, $this->config->ignoreNamespaces))
+			{
 				$namespaces[] = $key;
 			}
 		}
@@ -51,30 +53,31 @@ trait GenTrait
 	 */
 	protected function getComponent()
 	{
-
-		$component = $this->getOption('component');
+		$component  = $this->getOption('component');
 		$components = $this->config->components;
 
-		if (!$component || !in_array($component, $components)) {
-
-			for ($i=0; $i < count($components); $i++) { 
-				CLI::write("[".($i+1)."] ".$components[$i], 'yellow');
+		if (! $component || ! in_array($component, $components))
+		{
+			for ($i = 0; $i < count($components); $i++)
+			{
+				CLI::write('[' . ($i + 1) . '] ' . $components[$i], 'yellow');
 			}
 
 			// @codeCoverageIgnoreStart
-			$id = CLI::prompt("Component auswählen", array_merge([0], range(1,count($components))), 'required');
+			$id = CLI::prompt('Component auswählen', array_merge([0], range(1, count($components))), 'required');
 			CLI::newLine();
 
-			if (!$id) { $id=1; };
+			if (! $id)
+			{
+				$id = 1;
+			};
 
 			// @codeCoverageIgnoreEnd
 
-			$component = $components[$id-1];
-
+			$component = $components[$id - 1];
 		}
 
 		return $component;
-	
 	}
 
 	/**
@@ -86,45 +89,50 @@ trait GenTrait
 	 */
 	protected function getNamespace()
 	{
-
-		$namespace = $this->getOption('namespace');
+		$namespace  = $this->getOption('namespace');
 		$namespaces = $this->getNamespaces();
 
-		if (!$namespace || !in_array($namespace, $namespaces)) {
+		if (! $namespace || ! in_array($namespace, $namespaces))
+		{
+			$lastNamespace    = $this->config->temp['lastNamespace'] ?? '';
+			$defaultNamespace = $this->config->defaultNamespace ?? '';
 
-			$lastNamespace    = $this->config->temp['lastNamespace']  ?? "";
-			$defaultNamespace = $this->config->defaultNamespace ?? "";
-
-			$default = "App";
-			if ($lastNamespace!=="") {
+			$default = 'App';
+			if ($lastNamespace !== '')
+			{
 				$default = $lastNamespace;
-			} elseif ($defaultNamespace!=="") {
+			}
+			elseif ($defaultNamespace !== '')
+			{
 				$default = $defaultNamespace;
 			}
 
-			CLI::write("[0] Default: ".$default, 'yellow');
-			for ($i=0; $i < count($namespaces); $i++) { 
-				$d = ($namespaces[$i]==$default ? "* " : "");
-				CLI::write("[".($i+1)."] ".$d.$namespaces[$i], 'yellow');
+			CLI::write('[0] Default: ' . $default, 'yellow');
+			for ($i = 0; $i < count($namespaces); $i++)
+			{
+				$d = ($namespaces[$i] === $default ? '* ' : '');
+				CLI::write('[' . ($i + 1) . '] ' . $d . $namespaces[$i], 'yellow');
 			}
 
 			// @codeCoverageIgnoreStart
-			$id = CLI::prompt("Namespace auswählen", array_merge([0], range(1,count($namespaces))), 'required');
+			$id = CLI::prompt('Namespace auswählen', array_merge([0], range(1, count($namespaces))), 'required');
 			CLI::newLine();
 
 			$this->config->temp['lastNamespace'] = $default;
 			$this->writeConfig();
-			if (!$id) { return $default; };
+			if (! $id)
+			{
+				return $default;
+			};
 
 			// @codeCoverageIgnoreEnd
 
-			$namespace = $namespaces[$id-1];
+			$namespace                           = $namespaces[$id - 1];
 			$this->config->temp['lastNamespace'] = $namespace;
 			$this->writeConfig();
 		}
 
 		return $namespace;
-	
 	}
 
 	/**
@@ -136,80 +144,92 @@ trait GenTrait
 	 */
 	protected function getViews($prefix, $default)
 	{
+		$default        = str_replace('.tpl.php', '', $default);
+		$config_default = 'default' . ucfirst($prefix);
+		$config_last    = 'last' . ucfirst($prefix);
 
-		$default = str_replace(".tpl.php", "", $default);
-		$config_default = "default".ucfirst($prefix);
-		$config_last = "last".ucfirst($prefix);
-
-		$views=[];
-		foreach (glob(dirname(__FILE__)."/Views/".strtolower($prefix)."*.tpl.php") as $filename) {
-			$views[] = basename($filename, ".tpl.php" );
+		$views = [];
+		foreach (glob(dirname(__FILE__) . '/Views/' . strtolower($prefix) . '*.tpl.php') as $filename)
+		{
+			$views[] = basename($filename, '.tpl.php' );
 		}
-
 
 		#$config = $this->readConfig(dirname(__FILE__)."/".$this->ini);
 
-		if (isset($this->config->temp[$config_last]) && $this->config->temp[$config_last]!=="") {
+		if (isset($this->config->temp[$config_last]) && $this->config->temp[$config_last] !== '')
+		{
 			$defaultview = $this->config->temp[$config_last];
-		} elseif (isset($this->config->temp[$config_default]) && $this->config->temp[$config_default]!=="") {
+		}
+		elseif (isset($this->config->temp[$config_default]) && $this->config->temp[$config_default] !== '')
+		{
 			$defaultview = $this->config->temp[$config_default];
-		} else {
+		}
+		else
+		{
 			$defaultview = $default;
 		}
 
-		CLI::write("[0] Default: ".$defaultview, 'yellow');
+		CLI::write('[0] Default: ' . $defaultview, 'yellow');
 
-		for ($i=0; $i < count($views); $i++) { 
-			$d = ($views[$i]==$defaultview ? "* " : "");
-			CLI::write("[".($i+1)."] ".$d.basename($views[$i], ".tpl.php" ), 'yellow');
+		for ($i = 0; $i < count($views); $i++)
+		{
+			$d = ($views[$i] === $defaultview ? '* ' : '');
+			CLI::write('[' . ($i + 1) . '] ' . $d . basename($views[$i], '.tpl.php' ), 'yellow');
 		}
 
 		// @codeCoverageIgnoreStart
-		$id = CLI::prompt("View auswählen", array_merge([0], range(1,count($views))), 'required');
+		$id = CLI::prompt('View auswählen', array_merge([0], range(1, count($views))), 'required');
 		CLI::newLine();
 
 		$this->config->temp[$config_last] = $defaultview;
 
-		CLI::write("View: ".$this->config->temp[$config_last].".tpl.php", 'red');
+		CLI::write('View: ' . $this->config->temp[$config_last] . '.tpl.php', 'red');
 		$this->writeConfig();
 
-		if (!$id) { return $defaultview.".tpl.php"; };
+		if (! $id)
+		{
+			return $defaultview . '.tpl.php';
+		};
 		// @codeCoverageIgnoreEnd
 
-		$this->config->temp[$config_last] = $views[$id-1];
-		CLI::write("View: ".$this->config->temp[$config_last].".tpl.php", 'green');
+		$this->config->temp[$config_last] = $views[$id - 1];
+		CLI::write('View: ' . $this->config->temp[$config_last] . '.tpl.php', 'green');
 		$this->writeConfig();
 
-		return $this->config->temp[$config_last].".tpl.php";
-
+		return $this->config->temp[$config_last] . '.tpl.php';
 	}
 
+	function writeConfig()
+	{
+		$filename = dirname(__FILE__) . '/' . $this->config->ini;
+		$fh       = fopen($filename, 'w');
+		if (! is_resource($fh))
+		{
+			return false;
+		}
+		ksort($this->config->temp);
+		foreach ($this->config->temp as $key => $value)
+		{
+			fwrite($fh, sprintf("%s = %s\n", $key, $value));
+		}
+		fclose($fh);
 
-
-	function writeConfig() {
-		$filename = dirname(__FILE__)."/".$this->config->ini;
-	    $fh = fopen($filename, "w");
-	    if (!is_resource($fh)) {
-	        return false;
-	    }
-	    ksort($this->config->temp);
-	    foreach ($this->config->temp as $key => $value) {
-	        fwrite($fh, sprintf("%s = %s\n", $key, $value));
-	    }
-	    fclose($fh);
-
-	    return true;
+		return true;
 	}
 
-	function readConfig() {
-		$this->config = config("Tools");
-		$filename = dirname(__FILE__)."/".$this->config->ini;
-		CLI::write("Read Config File: ".$filename , 'yellow');
-		if (file_exists($filename)) {
-	    	$this->config->temp = parse_ini_file($filename, false, INI_SCANNER_NORMAL);
-		} else {
+	function readConfig()
+	{
+		$this->config = config('Tools');
+		$filename     = dirname(__FILE__) . '/' . $this->config->ini;
+		CLI::write('Read Config File: ' . $filename, 'yellow');
+		if (file_exists($filename))
+		{
+			$this->config->temp = parse_ini_file($filename, false, INI_SCANNER_NORMAL);
+		}
+		else
+		{
 			$this->config->temp = [];
-		} 
+		}
 	}
 
 	/**
@@ -227,21 +247,18 @@ trait GenTrait
 		// Retrieves the namespace part from the fully qualified class name.
 		$namespace = trim(implode('\\', array_slice(explode('\\', $class), 0, -1)), '\\');
 
-
-
 		array_push($search, '<@php', '{namespace}', '{class}');
 		array_push($replace, '<?php', $namespace, str_replace($namespace . '\\', '', $class));
 
-		CLI::write("File: ".dirname(__FILE__), 'yellow');
-		CLI::write("Template: ".$this->template);
-		CLI::write("Namespace: ".$namespace);
+		CLI::write('File: ' . dirname(__FILE__), 'yellow');
+		CLI::write('Template: ' . $this->template);
+		CLI::write('Namespace: ' . $namespace);
 
-
-		$parser = new \CodeIgniter\View\Parser(config("View"));
+		$parser = new \CodeIgniter\View\Parser(config('View'));
 
 		$data = [
-		        'namespace'   => 'My Blog Title',
-		        'blog_heading' => 'My Blog Heading'
+			'namespace'    => 'My Blog Title',
+			'blog_heading' => 'My Blog Heading',
 		];
 
 		$namespace = trim(str_replace('/', '\\', $this->getOption('namespace') ?? APP_NAMESPACE), '\\');
@@ -253,12 +270,11 @@ trait GenTrait
 		print_r($base);
 
 		#$filecontent =  $parser->setData($data)->render(dirname(__FILE__)."/Views/".$this->template);
-		$templatename = dirname(__FILE__)."/Views/".$this->template;
-		CLI::write("Templatename: ".$templatename);
+		$templatename = dirname(__FILE__) . '/Views/' . $this->template;
+		CLI::write('Templatename: ' . $templatename);
 		$filecontent = file_get_contents($templatename);
 
 		return str_replace($search, $replace, $filecontent);
-
 	}
 
 	/**
@@ -292,7 +308,7 @@ trait GenTrait
 		return CLI::getOptions();
 	}
 
-/**
+	/**
 	 * The params array for easy access by other methods.
 	 *
 	 * @internal
@@ -317,7 +333,7 @@ trait GenTrait
 
 		// Get the file path from class name.
 		$path = $this->buildPath($name);
-print_r("Path: ".$path);
+		print_r('Path: ' . $path);
 		// Check if path is empty.
 		if (empty($path))
 		{
@@ -391,8 +407,8 @@ print_r("Path: ".$path);
 		helper('inflector');
 
 		$component = strtolower(singular($this->component));
-		$name     = strtolower($name);
-		$name     = strpos($name, $component) !== false ? str_replace($component, ucfirst($component), $name) : $name;
+		$name      = strtolower($name);
+		$name      = strpos($name, $component) !== false ? str_replace($component, ucfirst($component), $name) : $name;
 
 		if ($this->getOption('suffix') && ! strripos($name, $component))
 		{
@@ -522,7 +538,5 @@ print_r("Path: ".$path);
 
 		return $template;
 	}
-
-
 
 }

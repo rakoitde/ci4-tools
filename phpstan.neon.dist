@@ -1,0 +1,22 @@
+parameters:
+	tmpDir: build/phpstan
+	level: 5
+	paths:
+		- src
+	treatPhpDocTypesAsCertain: false
+	bootstrapFiles:
+		- vendor/codeigniter4/codeigniter4/system/Test/bootstrap.php
+	excludes_analyse:
+		- src/Views/*
+		- src/Commands/Generators/Views/*
+		- src/Config/Routes.php
+		- src/ThirdParty/*
+	parallel:
+		processTimeout: 300.0
+	scanDirectories:
+		- src/Helpers
+	dynamicConstantNames:
+		- APP_NAMESPACE
+		- CI_DEBUG
+		- ENVIRONMENT
+		- SODIUM_LIBRARY_VERSION

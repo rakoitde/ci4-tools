@@ -61,6 +61,8 @@ class LayoutGenerator extends BaseCommand
 		'name' => 'The layout file name.',
 	];
 
+	protected $config;
+
 	/**
 	 * The Command's Options
 	 *

@@ -13,6 +13,9 @@ class DatabaseCompare extends BaseController
 
     protected $db_prod;
 
+    protected $config;
+
+    protected $CHARACTER_SET;
 
     function index()
     {

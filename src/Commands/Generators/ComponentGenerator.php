@@ -39,6 +39,13 @@ class ComponentGenerator extends BaseCommand
 	protected $name = 'build:component';
 
 	/**
+	 * The Directory
+	 *
+	 * @var string
+	 */
+	protected $directory;
+
+	/**
 	 * The Command's Description
 	 *
 	 * @var string
@@ -51,6 +58,8 @@ class ComponentGenerator extends BaseCommand
 	 * @var string
 	 */
 	protected $usage = 'build:component <name> [options]';
+
+	protected $config;
 
 	/**
 	 * The Command's Arguments

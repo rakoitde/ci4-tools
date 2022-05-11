@@ -52,6 +52,8 @@ class NavigationGenerator extends BaseCommand
 	 */
 	protected $usage = 'build:navigation <name> [options]';
 
+	protected $config;
+
 	/**
 	 * The Command's Arguments
 	 *
@@ -79,17 +81,15 @@ class NavigationGenerator extends BaseCommand
 	 */
 	public function run(array $params)
 	{
-
 		$this->component = 'Navigation';
 		$this->directory = 'Views';
 
 		$this->readConfig();
-		$this->namespace = $this->getNamespace();
-		$this->template  = $this->getViews("nav", $this->template);
+		$this->namespace                                   = $this->getNamespace();
+		$this->template                                    = $this->getViews('nav', $this->template);
 		$this->config->temp['lastQualifiedNavigationName'] = $this->qualifyViewName();
 		$this->writeConfig();
 		$this->execute($params);
-		
 	}
 
 	/**
@@ -101,11 +101,9 @@ class NavigationGenerator extends BaseCommand
 	 */
 	protected function prepare(string $class): string
 	{
-
 		return $this->parseViewTemplate(
 			$class
 		);
-
 	}
 
 }

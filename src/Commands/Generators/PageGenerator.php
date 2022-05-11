@@ -52,6 +52,8 @@ class PageGenerator extends BaseCommand
 	 */
 	protected $usage = 'build:page <name> [options]';
 
+	protected $config;
+
 	/**
 	 * The Command's Arguments
 	 *

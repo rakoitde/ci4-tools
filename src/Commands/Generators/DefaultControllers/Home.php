@@ -15,6 +15,20 @@ class DefaultController extends BaseController
 	protected $modelName = 'App\Controllers\Models\PermissionsModel';
 
 	/**
+	 * the model
+	 *
+	 * @var object
+	 */
+	protected $model;
+
+	/**
+	 * the config
+	 *
+	 * @var object
+	 */
+	protected $config;
+
+	/**
 	 * holds breadcrumb
 	 *
 	 * @var array

@@ -69,6 +69,8 @@ trait GeneratorTrait
 	 */
 	private $params = [];
 
+	protected $config;
+
 	/**
 	 * Execute the command.
 	 *

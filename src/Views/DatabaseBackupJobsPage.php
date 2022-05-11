@@ -28,7 +28,7 @@
       <ul class="list-group list-group-flush">
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <div class="h4"><?= $job->jobname ?>&nbsp;&nbsp;&nbsp;<i class="bi bi-pencil"></i></div>
-          <button class="btn btn-sm btn-outline-success" id="btnStartBackup" data-id="<?= $job->id ?>">Start</button>
+          <button class="btn btn-sm btn-outline-success" data-id="<?= $job->id ?>">Start</button>
         </li>
         <li class="list-group-item justify-content-between align-items-center">
           <div class="d-flex w-100 justify-content-between">
@@ -80,79 +80,38 @@
     <div class="col-lg-3 col-md-12 col-sm-12 col-12 mb-3">
       <ul class="list-group list-group-flush">
         <li class="list-group-item"><h4>Backups & Restore</h4></li>
-        <li class="list-group-item">db_rakoitde_2021-09-12_11-23-59.sql
-        <div class="progress" style="height: 4px;">
-          <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-        </li>
+        <li class="list-group-item">db_rakoitde_2021-09-12_11-23-59.sql</li>
         <li class="list-group-item">tbl_2021-09-12_11-23-59.sql</li>
       </ul>
     </div>
 
   <!-- Start: MultiStep Form -->
-  <div class="wizard" id="add_job_wizard" data-title="Neuer Backup Job">
-      <div class="wizard-card" data-cardname="card1">
-          <h3>Job Name</h3>
-          <div class="form-group">
-            <label for="jobname">Name</label>
-            <input type="text" class="form-control" id="jobname" name="jobname" aria-describedby="jobnameHelp">
-            <small id="jobnameHelp" class="form-text text-muted">Der Jobname muss eindeutig sein!</small>
-          </div>
-      </div>
-
+  <div class="wizard" id="add_job_wizard" data-title="Server Deployment ">
       <div class="wizard-card" data-cardname="card1">
           <h3>Server / Datenbank</h3>
-          <select class="custom-select" multiple>
-            <option selected value="default">default</option>
-            <option value="live">live</option>
-          </select>
+          <input class="form-control form-control-sm" id="Vorname" name="Vorname" value="Horst">
+          <input class="form-control form-control-sm" id="Nachname" name="Nachname" value="Murksi">
       </div>
       
-      <div class="wizard-card modal-dialog-scrollable" data-cardname="card2">
+      <div class="wizard-card" data-cardname="card2">
           <h3>Tabellen</h3>
-<?php foreach ($tables as $table) :?> 
-          <div class="form-group">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="check_table_<?= $table ?>" value="<?= $table ?>">
-              <label class="form-check-label" for="check_table_<?= $table ?>">
-                <?= $table ?>
-              </label>
-            </div>
-          </div>
-<?php endforeach ?>
+          <input class="form-control form-control-sm" name="Betriebssystem" value="Windows Server 2016">
+          <input class="form-control form-control-sm" name="Sprache" value="deutsch">
       </div>
 
       <div class="wizard-card" data-cardname="card3">
           <h3>Speicherort</h3>
-          <input class="form-control form-control-sm" name="Option1" value="<?= WRITEPATH ?>">
+          <input class="form-control form-control-sm" name="Option1" value="IIS">
+          <input class="form-control form-control-sm" name="Option2" value="RDP">
       </div>
       <div class="wizard-card" data-cardname="card3">
           <h3>Zeitplan</h3>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1" checked>
-              <label class="form-check-label" for="exampleRadios1">
-                Täglich
-              </label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="option2">
-              <label class="form-check-label" for="exampleRadios2">
-                Wöchentlich
-              </label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios3" value="option3" disabled>
-              <label class="form-check-label" for="exampleRadios3">
-                Monatlich
-              </label>
-            </div>
+          <input class="form-control form-control-sm" name="Option1" value="IIS">
+          <input class="form-control form-control-sm" name="Option2" value="RDP">
       </div>
       <div class="wizard-card" data-cardname="card3">
           <h3>Benachrichtigung</h3>
-          <div class="form-group">
-            <label for="exampleInputEmail1">Email address</label>
-            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" value="mail@ralf-kornberger.de">
-            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-          </div>
+          <input class="form-control form-control-sm" name="Option1" value="ralf.kornberger">
       </div>
       <div class="wizard-card overflow-auto" data-cardname="card4">
           <h3>Zusammenfassung</h3>

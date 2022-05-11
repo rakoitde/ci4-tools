@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Rakoitde\Tools\Controllers;
 
@@ -18,17 +18,20 @@ class DatabaseBackup extends BaseController
 
     protected string $modelname = "\Rakoitde\Tools\Models\BackupJobsModel";
 
+    protected $model;
+
     protected string $entityname = "\Rakoitde\Tools\Entity\BackupJobsEntity";
 
     protected $helpers = ('html');
 
-    public function index($id = null) {
+    public function index($id = null)
+    {
 
 
 
-$myTime = new Time('now', 'Europe/Berlin', 'de_DE');
+        $myTime = new Time('now', 'Europe/Berlin', 'de_DE');
 #d($myTime);
-$myTime = new Time('now');
+        $myTime = new Time('now');
 #d("full_backup_".str_replace(" ", "_", $myTime->toDateTimeString() ).".sql");
 
 
@@ -45,10 +48,10 @@ $myTime = new Time('now');
         $data["tables"] = $data['db']->listTables();
 #d($data['tables']);
         return view("Rakoitde\Tools\Views\DatabaseBackupView", $data);
-
     }
 
-    public function backup(string $table = null) {
+    public function backup(string $table = null)
+    {
 
 
         // Get All Table Names From the Database
@@ -60,7 +63,6 @@ $myTime = new Time('now');
 
         $sqlScript = "";
         foreach ($tables as $table) {
-            
             // Prepare SQLscript for creating table structure
             $createTable = $this->db->query("SHOW CREATE TABLE $table")->getResultArray()[0];
 
@@ -79,7 +81,6 @@ $myTime = new Time('now');
 
                 // Prepare SQLscript for dumping data for each table
                 foreach ($rows as $row) {
-
                     $sqlScript .= "INSERT INTO $table VALUES(";
                     for ($j = 0; $j < $columnCount; $j ++) {
                         #$row[$j] = $row[$j];
@@ -102,19 +103,18 @@ $myTime = new Time('now');
                 $sqlScript .= "-- no views or tables to create";
             }
             
-            $sqlScript .= "\n"; 
+            $sqlScript .= "\n";
         }
 
-return $sqlScript;
+        return $sqlScript;
 
 
-        if(!empty($sqlScript) && 1==2)
-        {
+        if (!empty($sqlScript) && 1==2) {
             // Save the SQL script to a backup file
             $backup_file_name = $database_name . '_backup_' . time() . '.sql';
             $fileHandler = fopen($backup_file_name, 'w+');
             $number_of_lines = fwrite($fileHandler, $sqlScript);
-            fclose($fileHandler); 
+            fclose($fileHandler);
 
             // Download the SQL backup file to the browser
             header('Content-Description: File Transfer');
@@ -128,7 +128,7 @@ return $sqlScript;
             ob_clean();
             flush();
             readfile($backup_file_name);
-            exec('rm ' . $backup_file_name); 
+            exec('rm ' . $backup_file_name);
         }
     }
 
@@ -138,4 +138,3 @@ return $sqlScript;
         $this->model = model($this->modelname);
     }
 }
-?>

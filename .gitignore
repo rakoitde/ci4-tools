@@ -29,3 +29,8 @@ phpunit
 .vagrant
 Vagrantfile
 src/.DS_Store
+build
+api
+src/Commands/.DS_Store
+src/.DS_Store
+*.lock

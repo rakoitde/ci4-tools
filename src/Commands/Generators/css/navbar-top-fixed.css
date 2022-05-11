@@ -6,13 +6,13 @@ body {
 
 
 .dropdown:hover > .dropdown-menu {
-    display: block;
+	display: block;
 }
 .dropdown > .dropdown-toggle:active {
-    /*Without this, clicking will make it sticky*/
-    pointer-events: none;
+	/*Without this, clicking will make it sticky*/
+	pointer-events: none;
 }
 
 .navbar-nav li:hover .dropdown-menu {
-    display: block;
+	display: block;
 }
