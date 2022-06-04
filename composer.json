@@ -22,10 +22,10 @@
 		}
 	],
 	"require": {
-		"php" : ">=7.2"
+		"php" : ">=7.4"
 	},
 	"minimum-stability": "dev",
-	"prefer-stable": true,
+	"prefer-stable": false,
 	"require-dev": {
 		"codeigniter4/codeigniter4": "dev-develop",
 		"phpunit/phpunit": "^8.5",
