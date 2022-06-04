@@ -1,4 +1,1 @@
-User Model
- [x] Get user entity from find method
- [x] Admin received from api
 

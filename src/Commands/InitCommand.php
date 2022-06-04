@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of CodeIgniter 4 Tools.
+ *
+ * (c) 2022 Ralf Kornberger <rakoitde@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 namespace Rakoitde\Tools\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
@@ -48,10 +57,10 @@ class InitCommand extends BaseCommand
      * @var array
      */
     protected $options = [
-        '-env' => 'Config environment',
-        '-app' => 'Config application',
+        '-env'        => 'Config environment',
+        '-app'        => 'Config application',
         '-db dbgroup' => 'Config database (dbgroup = default)',
-        '-all' => 'Config all',
+        '-all'        => 'Config all',
     ];
 
     /**
@@ -63,169 +72,160 @@ class InitCommand extends BaseCommand
 
     /**
      * Actually execute a command.
-     *
-     * @param array $params
      */
     public function run(array $params)
     {
-        CLI::write('PHP Version: '. CLI::color(phpversion(), 'yellow'));
-        CLI::write('CI Version: '. CLI::color(\CodeIgniter\CodeIgniter::CI_VERSION, 'yellow'));
-        CLI::write('APPPATH: '. CLI::color(APPPATH, 'yellow'));
-        CLI::write('SYSTEMPATH: '. CLI::color(SYSTEMPATH, 'yellow'));
-        CLI::write('ROOTPATH: '. CLI::color(ROOTPATH, 'yellow'));
-        CLI::write('Included files: '. CLI::color(strval(count(get_included_files())), 'yellow'));
+        CLI::write('PHP Version: ' . CLI::color(PHP_VERSION, 'yellow'));
+        CLI::write('CI Version: ' . CLI::color(\CodeIgniter\CodeIgniter::CI_VERSION, 'yellow'));
+        CLI::write('APPPATH: ' . CLI::color(APPPATH, 'yellow'));
+        CLI::write('SYSTEMPATH: ' . CLI::color(SYSTEMPATH, 'yellow'));
+        CLI::write('ROOTPATH: ' . CLI::color(ROOTPATH, 'yellow'));
+        CLI::write('Included files: ' . CLI::color((string) (count(get_included_files())), 'yellow'));
 
-        $request = \Config\Services::clirequest();
-        $options = $request->getOptions();
+        $request     = \Config\Services::clirequest();
+        $options     = $request->getOptions();
         $option_keys = array_keys($options);
 
         $this->loadEnv();
 
-        if (in_array("env", $option_keys) || in_array("all", $option_keys)) {
+        if (in_array('env', $option_keys, true) || in_array('all', $option_keys, true)) {
             $this->setChoise('CI_ENVIRONMENT', ['development', 'production']);
             $this->saveEnv();
         }
 
-        if (in_array("app", $option_keys) || in_array("all", $option_keys)) {
+        if (in_array('app', $option_keys, true) || in_array('all', $option_keys, true)) {
             $this->setText('app.baseURL');
             $this->setBool('app.forceGlobalSecureRequests');
             $this->saveEnv();
         }
 
-        if (in_array("db", $option_keys) || in_array("all", $option_keys)) {
-            while (!$this->setDatabaseConfig($request->getOption("db") ?? 'default')) {
-                $exit = CLI::prompt('Retry config database?', ['y','n']);
-                if ($exit=='n') { break; }
+        if (in_array('db', $option_keys, true) || in_array('all', $option_keys, true)) {
+            while (! $this->setDatabaseConfig($request->getOption('db') ?? 'default')) {
+                $exit = CLI::prompt('Retry config database?', ['y', 'n']);
+                if ($exit === 'n') {
+                    break;
+                }
             }
         }
-        
     }
 
-    private function loadEnv() 
+    private function loadEnv()
     {
+        $env_file = ROOTPATH . '.env';
 
-        $env_file = ROOTPATH.'.env';
-
-        if (!is_file($env_file)) {
-            copy(ROOTPATH.'env', ROOTPATH.'.env');
+        if (! is_file($env_file)) {
+            copy(ROOTPATH . 'env', ROOTPATH . '.env');
         }
 
         $this->env = explode("\n", file_get_contents($env_file));
 
         return is_file($env_file);
-
     }
 
-    private function saveEnv() 
+    private function saveEnv()
     {
-
-        $env_file = ROOTPATH.'.env';
+        $env_file = ROOTPATH . '.env';
 
         return file_put_contents($env_file, implode("\n", $this->env));
-
     }
 
     private function setDatabaseConfig(string $dbgroup = 'default'): bool
     {
-            CLI::write("Set database config for group '".$dbgroup."'. use '#' for comment out.", 'blue');
-            $this->setText('database.'.$dbgroup.'.hostname');
-            $this->setText('database.'.$dbgroup.'.database');
-            $this->setText('database.'.$dbgroup.'.port');
-            $this->setText('database.'.$dbgroup.'.username');
-            $this->setText('database.'.$dbgroup.'.password');
-            $this->setText('database.'.$dbgroup.'.DBDriver');
-            $this->setText('database.'.$dbgroup.'.DBPrefix');
-            $this->saveEnv();
-            $db = \Config\Database::connect($dbgroup, false);
+        CLI::write("Set database config for group '" . $dbgroup . "'. use '#' for comment out.", 'blue');
+        $this->setText('database.' . $dbgroup . '.hostname');
+        $this->setText('database.' . $dbgroup . '.database');
+        $this->setText('database.' . $dbgroup . '.port');
+        $this->setText('database.' . $dbgroup . '.username');
+        $this->setText('database.' . $dbgroup . '.password');
+        $this->setText('database.' . $dbgroup . '.DBDriver');
+        $this->setText('database.' . $dbgroup . '.DBPrefix');
+        $this->saveEnv();
+        $db = \Config\Database::connect($dbgroup, false);
 
-            try {
-                $db->connect();
-                return true;
-            } 
-            catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) 
-            {
-                CLI::write('DB Connect: '.$e->getMessage(), 'red');
-                return false;
-            }
+        try {
+            $db->connect();
 
+            return true;
+        } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+            CLI::write('DB Connect: ' . $e->getMessage(), 'red');
+
+            return false;
+        }
     }
 
-    private function setChoise(string $variable, array $choices) 
+    private function setChoise(string $variable, array $choices)
     {
         $default = $this->getEnv($variable);
 
-        array_unshift($choices, '*'.$default['val']);
+        array_unshift($choices, '*' . $default['val']);
 
         $choice = CLI::promptByKey($variable, $choices);
 
-        if ($choice==0) { return; }
+        if ($choice === 0) {
+            return;
+        }
 
-        $this->env[$default['id']]=$default['key'].' = '.$choices[$choice];
-
+        $this->env[$default['id']] = $default['key'] . ' = ' . $choices[$choice];
     }
 
-    private function setUrl(string $variable) 
+    private function setUrl(string $variable)
     {
         $default = $this->getEnv($variable);
 
         $url = CLI::prompt($variable, $default['val'], 'required|regex_match[/https?:\/\/(?:w{1,3}\.)?[^\s.]*(?:\.[a-z]+)*(?::\d+)?(?![^<]*(?:<\/\w+>|\/?>))/]');
 
-        $this->env[$default['id']]=$default['key'].' = '.$url;
+        $this->env[$default['id']] = $default['key'] . ' = ' . $url;
     }
 
-    private function setText(string $variable) 
+    private function setText(string $variable)
     {
         $default = $this->getEnv($variable);
 
-        $commentedout = $default['commentedout'] ? "# " : "";
-        $text = CLI::prompt($variable, $commentedout.$default['val']);
+        $commentedout = $default['commentedout'] ? '# ' : '';
+        $text         = CLI::prompt($variable, $commentedout . $default['val']);
 
-        if (substr($text,0,1)=="#") {
-            $commentout = "# ";
-            $text = trim(substr($text,1));
+        if (substr($text, 0, 1) === '#') {
+            $commentout = '# ';
+            $text       = trim(substr($text, 1));
         } else {
-            $commentout = "";
-            $text = trim($text);
+            $commentout = '';
+            $text       = trim($text);
         }
 
-        $this->env[$default['id'] ?? null] = $commentout . $default['key'].' = '.$text;
-
+        $this->env[$default['id'] ?? null] = $commentout . $default['key'] . ' = ' . $text;
     }
 
-    private function setBool(string $variable) 
+    private function setBool(string $variable)
     {
         $default = $this->getEnv($variable);
 
-        $bool = CLI::prompt($variable, [$default['val'],$default['val']=='true' ? 'false' : 'true']);
+        $bool = CLI::prompt($variable, [$default['val'], $default['val'] === 'true' ? 'false' : 'true']);
 
-        $this->env[$default['id']]=$default['key'].' = '.$bool;
-
+        $this->env[$default['id']] = $default['key'] . ' = ' . $bool;
     }
 
-    private function getEnv($key) {
+    private function getEnv($key)
+    {
+        $env['key']          = $key;
+        $env['val']          = '';
+        $env['exist']        = false;
+        $env['commentedout'] = false;
 
-        $env['key']=$key;
-        $env['val']='';
-        $env['exist']=false;
-        $env['commentedout']=false;
-
-        $line = preg_grep('/'.$key.'/', $this->env);
+        $line = preg_grep('/' . $key . '/', $this->env);
 
         if (count($line) > 0) {
+            $env['id']           = key($line);
+            $parts               = explode('=', $line[$env['id']]);
+            $env['commentedout'] = substr(trim($parts[0]), 0, 1) === '#';
+            $env['val']          = trim($parts[1]);
 
-            $env['id']= key($line);
-            $parts = explode("=", $line[$env['id']]);
-            $env['commentedout'] = substr(trim($parts[0]),0,1)=='#';
-            $env['val'] = trim($parts[1]);
+            //$parts = explode($this->env[key($line)], "=");
+            //$val=$parts[1];
 
-            #$parts = explode($this->env[key($line)], "=");
-            #$val=$parts[1];
-
-            #$fruit = CLI::promptByKey('CI_ENVIRONMENT:', ['development', 'production', 'The ripe banana']);
-            #CLI::write('ENV: '. CLI::color('KEY: '.$key, 'red'));
-            #CLI::write('ENV: '. CLI::color('VAL: '.$val, 'red'));
-
-        } 
+            //$fruit = CLI::promptByKey('CI_ENVIRONMENT:', ['development', 'production', 'The ripe banana']);
+            //CLI::write('ENV: '. CLI::color('KEY: '.$key, 'red'));
+            //CLI::write('ENV: '. CLI::color('VAL: '.$val, 'red'));
+        }
 
         return $env;
     }

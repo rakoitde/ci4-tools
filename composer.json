@@ -30,9 +30,9 @@
 		"phpunit/phpunit": "^8.5",
 		"phpstan/phpstan": "1.7.x-dev",
 		"squizlabs/php_codesniffer": "^3.5",
-		"codeigniter4/codeigniter4-standard": "^1.0",
 		"codeigniter4/framework": "dev-master",
-		"codeigniter4/codeigniter4": "4.x-dev"
+		"codeigniter4/codeigniter4": "4.x-dev",
+		"codeigniter/coding-standard": "dev-develop"
 	},
 	"autoload": {
 		"psr-4": {
@@ -46,8 +46,8 @@
 	},
 	"scripts": {
 		"analyze": "./vendor/bin/phpstan analyse src tests",
-		"style": "phpcbf --standard=./vendor/codeigniter4/codeigniter4-standard/CodeIgniter4 src/ tests/",
-		"test": "phpunit",
+		"style": "./vendor/bin/php-cs-fixer fix --verbose",
+		"test": "./vendor/bin/phpunit",
 		"post-update-cmd": [
 			"composer dump-autoload"
 		]
