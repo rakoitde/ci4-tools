@@ -218,7 +218,7 @@ class DatabaseCompare extends BaseController
 
     /**
      * Given a database and a table, compile an array of field meta data
-     * @param array $database
+     * @param mixed $db
      * @param string $table
      * @return array $fields
      */
@@ -236,10 +236,10 @@ class DatabaseCompare extends BaseController
 
     /**
      * Given to arrays of table fields, add/edit/remove fields
-     * @param type $source_field_structures
-     * @param type $destination_field_structures
+     * @param array $source_field_structures
+     * @param array $destination_field_structures
      */
-    function determine_field_changes($source_field_structures, $destination_field_structures)
+    function determine_field_changes(array $source_field_structures, array $destination_field_structures)
     {
         $sql_commands_to_run = array();
 
@@ -412,9 +412,9 @@ class DatabaseCompare extends BaseController
 
     /**
      * Recursive version of in_array
-     * @param type $needle
-     * @param type $haystack
-     * @param type $strict
+     * @param string $needle
+     * @param array $haystack
+     * @param boolean $strict
      * @return boolean
      */
     function in_array_recursive($needle, $haystack, $strict = false)
@@ -422,7 +422,7 @@ class DatabaseCompare extends BaseController
         foreach ($haystack as $array => $item)
         {
             $item = $item["Field"]; // look in the name field only
-            if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && in_array_recursive($needle, $item, $strict)))
+            if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && $this->in_array_recursive($needle, $item, $strict)))
             {
                 return true;
             }

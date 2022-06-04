@@ -22,7 +22,7 @@ class DatabaseBackup extends BaseController
 
     protected string $entityname = "\Rakoitde\Tools\Entity\BackupJobsEntity";
 
-    protected $helpers = ('html');
+    protected $helpers = ['html'];
 
     public function index($id = null)
     {
@@ -39,11 +39,12 @@ class DatabaseBackup extends BaseController
 #d($this->model);
 
         // Collect Data
+        $job = isset($id) ? $this->model->find($id) : $this->model->first();
         $data = [
             "createsql" => $this->backup("auth_groups_permissions"), #$this->backup(),
             "backupjobs" => $this->model->orderBy("jobname")->findAll(),
-            "job" => isset($id) ? $this->model->find($id) : $this->model->first(),
-            "db" => \Config\Database::connect($data['job']['dbgroup'] ?? 'default'),
+            "job" => $job,
+            "db" => \Config\Database::connect($job['dbgroup']),
         ];
         $data["tables"] = $data['db']->listTables();
 #d($data['tables']);
@@ -108,10 +109,12 @@ class DatabaseBackup extends BaseController
 
         return $sqlScript;
 
+    }
 
-        if (!empty($sqlScript) && 1==2) {
+    public function downloadBackupFile($sqlScript) {
+        if (!empty($sqlScript)) {
             // Save the SQL script to a backup file
-            $backup_file_name = $database_name . '_backup_' . time() . '.sql';
+            $backup_file_name = 'default' . '_backup_' . time() . '.sql';
             $fileHandler = fopen($backup_file_name, 'w+');
             $number_of_lines = fwrite($fileHandler, $sqlScript);
             fclose($fileHandler);

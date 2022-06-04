@@ -6,7 +6,7 @@ parameters:
 	treatPhpDocTypesAsCertain: false
 	bootstrapFiles:
 		- vendor/codeigniter4/codeigniter4/system/Test/bootstrap.php
-	excludes_analyse:
+	excludePaths:
 		- src/Views/*
 		- src/Commands/Generators/Views/*
 		- src/Config/Routes.php

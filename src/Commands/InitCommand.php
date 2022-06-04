@@ -55,6 +55,13 @@ class InitCommand extends BaseCommand
     ];
 
     /**
+     * Lines of environment file .env
+     *
+     * @var array
+     */
+    private $env = [];
+
+    /**
      * Actually execute a command.
      *
      * @param array $params
@@ -66,9 +73,9 @@ class InitCommand extends BaseCommand
         CLI::write('APPPATH: '. CLI::color(APPPATH, 'yellow'));
         CLI::write('SYSTEMPATH: '. CLI::color(SYSTEMPATH, 'yellow'));
         CLI::write('ROOTPATH: '. CLI::color(ROOTPATH, 'yellow'));
-        CLI::write('Included files: '. CLI::color(count(get_included_files()), 'yellow'));
+        CLI::write('Included files: '. CLI::color(strval(count(get_included_files())), 'yellow'));
 
-        $request = \Config\Services::CLIRequest();
+        $request = \Config\Services::clirequest();
         $options = $request->getOptions();
         $option_keys = array_keys($options);
 
@@ -175,7 +182,7 @@ class InitCommand extends BaseCommand
 
         if (substr($text,0,1)=="#") {
             $commentout = "# ";
-            $text = trim(substr($text,1) ?? "");
+            $text = trim(substr($text,1));
         } else {
             $commentout = "";
             $text = trim($text);
