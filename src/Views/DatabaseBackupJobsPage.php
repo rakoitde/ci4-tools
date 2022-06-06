@@ -9,9 +9,9 @@
 		<button type="button" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center" aria-current="true">
 		  <h4>Backup Jobs</h4> <h4><i id="btnAddJob" class="bi bi-plus-circle"></i></h4>
 		</button>
-<?php foreach ($backupjobs as $job) : ?>
+<?php foreach ($backupjobs as $j) : ?>
 		<div class="btn-group d-flex justify-content-between align-items-center list-group-item list-group-item-action">
-		  <a href="<?= 'backupdb/' . $job->id ?>"><?= $job->jobname ?></a>
+		  <a href="<?= 'backupdb/' . $j->id ?>"><?= $j->jobname ?></a>
 		  <i type="" class="dropdown-toggle bi bi-three-dots-ver_tical" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
 		  <div class="dropdown-menu dropdown-menu-right">
 			<button class="dropdown-item" type="button">Action</button>
@@ -23,6 +23,7 @@
 	  </div>
 	</div>
 
+<?php if ($job) : ?>
 	<!-- Job Details -->
 	<div class="col-lg-6 col-md-6 col-sm-12 col-12 mb-3">
 	  <ul class="list-group list-group-flush">
@@ -75,7 +76,7 @@
 
 	  </ul>
 	</div>
-
+<?php endif ?>
 	<!-- History -->
 	<div class="col-lg-3 col-md-12 col-sm-12 col-12 mb-3">
 	  <ul class="list-group list-group-flush">

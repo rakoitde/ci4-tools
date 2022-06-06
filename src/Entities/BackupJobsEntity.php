@@ -21,12 +21,12 @@ class BackupJobsEntity extends Entity
     /**
      * [$datamap description]
      */
-    protected array $datamap = [];
+    protected $datamap = [];
 
     /**
      * [$dates description]
      */
-    protected array $dates = [
+    protected $dates = [
         'created_at',
         'updated_at',
         'deleted_at',
@@ -35,5 +35,5 @@ class BackupJobsEntity extends Entity
     /**
      * [$casts description]
      */
-    protected array $casts = [];
+    protected $casts = [];
 }

@@ -46,14 +46,18 @@ class DatabaseBackup extends BaseController
 
         // Collect Data
         $job  = isset($id) ? $this->model->find($id) : $this->model->first();
+        
+        $db = $job ? \Config\Database::connect($job['dbgroup']) : null;
+        $tables = $db ? $db->listTables() : [];
+
         $data = [
             'createsql'  => $this->backup('auth_groups_permissions'), //$this->backup(),
             'backupjobs' => $this->model->orderBy('jobname')->findAll(),
             'job'        => $job,
-            'db'         => \Config\Database::connect($job['dbgroup']),
+            'db'         => $db,
+            'tables'     => $tables,
         ];
-        $data['tables'] = $data['db']->listTables();
-        //d($data['tables']);
+        
         return view('Rakoitde\Tools\Views\DatabaseBackupView', $data);
     }
 
