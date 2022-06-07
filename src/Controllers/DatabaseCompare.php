@@ -23,6 +23,8 @@ class DatabaseCompare extends BaseController
     public function index()
     {
 
+        ini_set('max_execution_time', '300'); //300 seconds = 5 minutes
+
         // This will become a list of SQL Commands to run on the Live database to bring it up to date
         $sql_commands_to_run = [];
 
