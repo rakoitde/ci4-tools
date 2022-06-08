@@ -11,14 +11,14 @@
 
 helper('auth');
 
-$routes->group(
-    'tools',
-    ['namespace' => 'Rakoitde\Tools\Controllers'],
-    static function ($routes) {
-        //$routes->get('/',       'AuthController::index', ['filter' => 'haspermissions:Auth.Module']);
+$routes->group('tools', ['namespace' => 'Rakoitde\Tools\Controllers'], static function ($routes) 
+    {
 
+        $routes->get('database', 'DatabaseController::index');
         $routes->add('comparedb', 'DatabaseCompare::index');
         $routes->add('backupdb', 'DatabaseBackup::index');
         $routes->add('db/(:segment)/backup', 'DatabaseBackup::backup/$1');
+
     }
+
 );

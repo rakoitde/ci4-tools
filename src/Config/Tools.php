@@ -8,17 +8,24 @@ class Tools extends BaseConfig
 {
 
 	/**
-	 * Generatiors ini filename
+	 * Database group for development
 	 *
 	 * @var string
 	 */
 	public $db_group_dev = 'default';
 
-	/**
-	 * Components
-	 *
-	 * @var string
-	 */
-	public $db_group_prod = 'prod';
+    /**
+     * Database group for testing
+     *
+     * @var string
+     */
+    public $db_group_test = 'kitrz_demo';
+
+    /**
+     * Database group for produktive
+     *
+     * @var string
+     */
+    public $db_group_prod = 'live';
 
 }
