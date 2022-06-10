@@ -7,6 +7,20 @@ use CodeIgniter\Config\BaseConfig;
 class Tools extends BaseConfig
 {
 
+    /**
+     * Environments
+     *
+     * @var        array
+     */
+    public $environments = ['dev','test','prod'];
+
+    /**
+     * Current environment
+     *
+     * @var        string
+     */
+    public $currentenvironment = 'dev';
+
 	/**
 	 * Database group for development
 	 *

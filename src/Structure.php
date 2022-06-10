@@ -21,9 +21,9 @@ use Rakoitde\Tools\Command;
 class Structure
 {
 
-    protected string $dbgroup;
+    public string $dbgroup;
 
-    protected string $table;
+    public string $table;
 
     protected $CHARACTER_SET = 'utf8 COLLATE utf8_general_ci';
 
@@ -31,17 +31,17 @@ class Structure
 
     protected $to;
 
-    protected array $from_commands = [];
+    public array $from_commands = [];
 
-    protected array $to_commands = [];
+    public array $to_commands = [];
 
-    protected $fields_to_update = [];
+    public $fields_to_update = [];
 
-    protected $fields_to_add = [];
+    public $fields_to_add = [];
 
-    protected $fields_to_drop = [];
+    public $fields_to_drop = [];
 
-    protected $fields_equal = [];
+    public $fields_equal = [];
 
     /**
      * { function_description }
@@ -143,7 +143,7 @@ class Structure
                     $command->result  = "";
                     $command->type    = "field";
                     $command->command = $modify_field;
-                    
+
                     $this->to_commands[] = $command;
                 }
             }

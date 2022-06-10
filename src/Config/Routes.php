@@ -20,5 +20,17 @@ $routes->group('tools', ['namespace' => 'Rakoitde\Tools\Controllers'], static fu
         $routes->add('db/(:segment)/backup', 'DatabaseBackup::backup/$1');
 
     }
+);
 
+
+$routes->group('api/tools', ['namespace' => 'Rakoitde\Tools\Controllers'], static function ($routes) 
+    {
+
+        $routes->get('environment',        'ApiDatabaseController::environment');
+
+        $routes->get('tables',             'ApiDatabaseController::tables');
+
+        $routes->get('compare/(:any)',     'ApiDatabaseController::compare/$1');
+
+    }
 );

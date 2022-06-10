@@ -14,6 +14,7 @@ namespace Rakoitde\Tools;
 use Rakoitde\Tools\Config\Tools;
 
 use Rakoitde\Tools\Command;
+use Rakoitde\Tools\Constraint;
 
 /**
  * This class describes an environment.
@@ -21,27 +22,37 @@ use Rakoitde\Tools\Command;
 class Environment
 {
 
-    protected string $environment;
+    public string $environment;
 
-    public $db;
+    protected $db;
 
-    protected bool $isconnected = false;
+    /**
+     * Database Tools config
+     */
+    protected $config;
+
+    public bool $isconnected = false;
 
     protected string $db_version;
 
     protected $error = null;
 
-    protected string $db_group;
+    public string $db_group;
 
-    protected array $tables_to_create;
+    /**
+     * Tables in scope 
+     */
+    public array $tables_in_scope;
 
-    protected array $tables_to_drop;
+    public array $tables_to_create;
 
-    protected array $commands;
+    public array $tables_to_drop;
 
-    protected array $constraints;
+    public array $commands;
 
-    protected array $constraintcommands;
+    public array $constraints;
+
+    public array $constraintcommands;
 
 
     /**
@@ -64,6 +75,11 @@ class Environment
         return $this;
     }
 
+    public function db()
+    {
+        return $this->db;
+    }
+
     /**
      * Determines if connected.
      *
@@ -72,6 +88,11 @@ class Environment
     public function isConnected(): bool
     {
         return $this->isconnected;
+    }
+
+    public function setTablesInScope($tables_in_scope)
+    {
+        $this->tables_in_scope = is_string($tables_in_scope) ? [$tables_in_scope] : $tables_in_scope;
     }
 
     /**
@@ -89,28 +110,34 @@ class Environment
      *
      * @return     array  ( description_of_the_return_value )
      */
-    public function Tables()
+    public function tables()
     {
         if (!$this->isconnected) { return []; }
         if (!isset($this->tables)) {
-            $this->tables = $this->db->listTables();
+            $this->tables = isset($this->tables_in_scope) ? array_intersect($this->tables_in_scope, $this->db->listTables()) : $this->db->listTables();
         }
         return $this->tables;
     }
 
-    public function tablesToCreate(Environment $env)
+    public function tablesToCreate($envtables)
     {
+
+        if (is_string($envtables)) { $envtables = [$envtables]; }
+
         if (!isset($this->tables_to_create)) {  
-            $this->tables_to_create = array_diff($env->tables(), $this->tables());
+            $this->tables_to_create = array_diff($envtables, $this->tables());
         }
 
         return $this->tables_to_create;
     }
 
-    public function tablesToDrop(Environment $env)
+    public function tablesToDrop($envtables)
     {
+
+        if (is_string($envtables)) { $envtables = [$envtables]; }
+
         if (!isset($this->tables_to_drop)) {  
-            $this->tables_to_drop = array_diff($this->tables(), $env->tables());
+            $this->tables_to_drop = array_diff($this->tables(), $envtables);
         }
 
         return $this->tables_to_create;
@@ -196,8 +223,10 @@ class Environment
      *
      * @return     <type>  The constraints.
      */
-    public function Constraints($table = '%')
+    public function Constraints()
     {
+
+        $tables = implode("', '", $this->tables());
 
         if (isset($this->constraints)) { return $this->constraints; }
 
@@ -219,13 +248,19 @@ class Environment
         WHERE
             c.REFERENCED_TABLE_NAME IS NOT null AND
             c.CONSTRAINT_SCHEMA = '{$shema}' AND
-            c.TABLE_NAME like '{$table}'
+            c.TABLE_NAME in ('{$tables}')
         ORDER BY
             -- c.CONSTRAINT_SCHEMA,
             c.TABLE_NAME,
             c.CONSTRAINT_NAME";
 
-        $this->constraints = $this->db->query($sql)->getResultArray();
+        $constraints = $this->db->query($sql)->getResultArray();
+
+        $this->constraints = [];
+
+        foreach ($constraints as $constraint) {
+            $this->constraints[$constraint['CONSTRAINT_NAME']] = new Constraint($constraint);
+        }
 
         return $this->constraints;
 
@@ -239,7 +274,9 @@ class Environment
         $this->constraintcommands = [];
 
         foreach ($this->constraints as $constraint) {
-            $this->constraintcommands[] = "ALTER TABLE `{$constraint['TABLE_NAME']}` ADD CONSTRAINT `{$constraint['CONSTRAINT_NAME']}` FOREIGN KEY (`{$constraint['COLUMN_NAME']}`) REFERENCES `{$constraint['REFERENCED_TABLE_NAME']}` (`{$constraint['REFERENCED_COLUMN_NAME']}`) ON DELETE {$constraint['DELETE_RULE']} ON UPDATE {$constraint['UPDATE_RULE']};";
+
+            $this->constraintcommands[$constraint->name] = (string)$constraint;
+
         }
 
         return $this->constraintcommands;

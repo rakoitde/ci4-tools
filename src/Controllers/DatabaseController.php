@@ -23,9 +23,9 @@ class DatabaseController extends BaseController
 
         $tools = new DatabaseTools();
 
-        $tools->compare("dev", "test");
+        $tools->compare(["dms_document","dms_relation"]);
 
-d($tools);
+d($tools); 
  
     }
 
