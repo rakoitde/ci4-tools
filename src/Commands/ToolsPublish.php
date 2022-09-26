@@ -1,6 +1,6 @@
 <?php
 
-namespace Math\Auth\Commands;
+namespace Rakoitde\Tools\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\Publisher\Publisher;
