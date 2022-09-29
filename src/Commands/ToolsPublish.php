@@ -17,7 +17,7 @@ class ToolsPublish extends BaseCommand
         // Use the Autoloader to figure out the module path
         $source = service('autoloader')->getNamespace('Rakoitde\\Tools');
 
-        $publisher = new Publisher($source, APPPATH);
+        $publisher = new Publisher($source[0], APPPATH);
 
         try {
             // Add only the desired components
