@@ -55,6 +55,11 @@ class UpdateModelCommand extends BaseCommand
     ];
 
     /**
+     * The loaded Model
+     */
+    protected $model;
+
+    /**
      * Actually execute a command.
      *
      * @param array $params
@@ -99,6 +104,10 @@ class UpdateModelCommand extends BaseCommand
 
     protected function getModel()
     {
+        $this->model = class {
+            public $filename = "Hallo";
+        }
+
         $modelname = $this->params[0];
         $namespace = $this->getOption('namespace');
         $modelname = $namespace.'\\'.$modelname;
