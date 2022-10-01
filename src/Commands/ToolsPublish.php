@@ -3,6 +3,7 @@
 namespace Rakoitde\Tools\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
+use CodeIgniter\CLI\CLI;
 use CodeIgniter\Publisher\Publisher;
 use Throwable;
 
@@ -14,12 +15,15 @@ class ToolsPublish extends BaseCommand
 
     protected $source;
 
+    protected $published = [];
+
     public function run(array $params)
     {
 
         $this->source = service('autoloader')->getNamespace('Rakoitde\\Tools')[0];
 
         $this->publish();
+        $this->replaceNamespaces();
 
     }
 
@@ -29,42 +33,34 @@ class ToolsPublish extends BaseCommand
         $publisher = new Publisher($this->source, APPPATH);
 
         try {
-            $publisher->addPaths(['Commands/*Command.php','Entities/*.php'])->merge(false); // Be careful not to overwrite anything
+
+            $publisher->addPaths(['Commands'])->retainPattern('*Command.php')->merge(); 
+            $this->published = array_merge($this->published, $publisher->getPublished());
+
+            $publisher->addPaths(['Entities'])->retainPattern('EntityRelationTrait.php')->merge();
+            $this->published = array_merge($this->published, $publisher->getPublished());
+
         } catch (Throwable $e) {
+
             $this->showError($e);
             return;
-        }
 
-        // If publication succeeded then update namespaces
-        foreach ($publisher->getPublished() as $file) {
-            // Replace the namespace
-            $contents = file_get_contents($file);
-            $contents = str_replace('namespace Rakoitde\\Tools', 'namespace ' . APP_NAMESPACE, $contents);
-            file_put_contents($file, $contents);
         }
 
     }
 
-    private function ____publishEntityRelationTrait()
+    private function replaceNamespaces()
     {
-
-        $publisher = new Publisher($this->source, APPPATH);
-
-        try {
-            $publisher->addPaths(['Entities/*.php'])->merge(false); // Be careful not to overwrite anything
-        } catch (Throwable $e) {
-            $this->showError($e);
-            return;
-        }
-
-        // If publication succeeded then update namespaces
-        foreach ($publisher->getPublished() as $file) {
+        CLI::write('Replace namespaces in published files', 'yellow');
+        foreach ($this->published as $file) {
             // Replace the namespace
+            CLI::write('File: '.CLI::color($file, 'white'), 'yellow');
             $contents = file_get_contents($file);
             $contents = str_replace('namespace Rakoitde\\Tools', 'namespace ' . APP_NAMESPACE, $contents);
             file_put_contents($file, $contents);
         }
-
+        CLI::write("");
     }
+
 
 }
