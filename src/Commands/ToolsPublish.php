@@ -9,7 +9,7 @@ use Throwable;
 class ToolsPublish extends BaseCommand
 {
     protected $group       = 'Tools';
-    protected $name        = 'Tools:publish';
+    protected $name        = 'tools:publish';
     protected $description = 'Publish Tools components into the current application.';
 
     protected $source;
@@ -19,7 +19,7 @@ class ToolsPublish extends BaseCommand
 
         $this->source = service('autoloader')->getNamespace('Rakoitde\\Tools')[0];
 
-        $this->publishCommands();
+        $this->publish();
 
     }
 
