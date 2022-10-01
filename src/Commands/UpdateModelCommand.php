@@ -57,6 +57,8 @@ class UpdateModelCommand extends BaseCommand
         '--force'         => 'Force overwrite existing file.',
     ];
 
+    protected array $toReplace = [];
+
     /**
      * Actually execute a command.
      *
@@ -83,17 +85,17 @@ class UpdateModelCommand extends BaseCommand
         $missingTimestampFields = array_diff($this->model->timestampFields, $fields);
         CLI::write("  missingTimestampFields : ".CLI::color(implode(", ", $missingTimestampFields), 'white'), 'green');
 
-        if ($this->isForced()) {
-            CLI::write("Update Model: ", 'red');
-            $contents = file_get_contents($this->model->filename);
-            $contents = str_replace("protected \$primaryKey = '';", "protected \$primaryKey = '".$primaryKey."';", $contents);
-            $contents = str_replace("protected \$allowedFields  = [];", "protected \$allowedFields  = ['".implode("', '",$allowedFields)."'];", $contents);
-#var_dump($contents);
-            file_put_contents($this->model->filename.".txt", $contents);
-        }
+        $this->addReplace("protected \$primaryKey = '{replace}';",    $primaryKey);
+        $this->addReplace("protected \$allowedFields = [{replace}];", "'".implode("', '",$allowedFields)."'");
 
         if ($this->useTimestamps()) {
             $this->addTimestampFields($missingTimestampFields);
+            $this->addReplace("protected \$useTimestamps =\s*{replace};", json_encode($this->useTimestamps()));
+        }
+
+        if ($this->isForced()) {
+            CLI::write("Update Model: ", 'red');
+            $this->replace();
         }
 
     }
@@ -128,7 +130,6 @@ class UpdateModelCommand extends BaseCommand
         $this->model->updatedField  = $model->updatedField;
         $this->model->deletedField  = $model->deletedField;
         $this->model->timestampFields = [$model->createdField, $model->updatedField, $model->deletedField];
-#var_dump($this->model);
         $this->model->model         = $model;
 
         CLI::write("Model: ", 'yellow');
@@ -172,11 +173,42 @@ class UpdateModelCommand extends BaseCommand
         return '';
     }
 
-    protected function addTimestampFields($missingTimestampFields)
+    protected function addReplace($pattern, $value)
+    {
+        $replace = new class {
+            public string $pattern;
+            public string $value;
+        };
+        $replace->pattern = $pattern;
+        $replace->value   = $value;
+
+        $this->toReplace[] = $replace;
+    }
+
+    protected function replace()
     {
 
-#'TIMESTAMP',
-                #'default' => new RawSql('CURRENT_TIMESTAMP'),
+        $contents = file_get_contents($this->model->filename);
+        file_put_contents($this->model->filename.".ori", $contents);
+
+        $search_array  = [" "  , "$"  , "'"  , "["  , "]"  ];
+        $replace_array = ["\s*", "\\$", "\\'", "\\[", "\\]"];
+
+        foreach ($this->toReplace as $replace) {
+            $replace->pattern = str_replace($search_array, $replace_array, $replace->pattern);
+            $p = explode("{replace}", $replace->pattern);
+            $pattern = "/({$p[0]})(.*)({$p[1]})/";
+            $value = '$1'.$replace->value.'$3';
+            CLI::write($pattern.' => '.$value, 'white');
+            $contents = preg_replace($pattern, $value, $contents);
+        }
+
+        file_put_contents($this->model->filename, $contents);
+
+    }
+
+    protected function addTimestampFields($missingTimestampFields)
+    {
 
         $forge = \Config\Database::forge();
 
@@ -184,13 +216,12 @@ class UpdateModelCommand extends BaseCommand
 
         foreach ($missingTimestampFields as $field) {
             CLI::write("ALTER TABLE `".$this->model->table."` ADD `".$field."` DATETIME");
-            $fields[$field] = ['type'    => 'DATETIME'];
+            $fields[$field] = ['type' => 'DATETIME'];
         }
 
         if ( count($fields)==0 ) { return; }
 
-        $forge->addColumn($this->model->table, $fields);
-        // Executes: ALTER TABLE `table_name` ADD `preferences` TEXT
+        $forge->addColumn($this->model->table, $fields); // Executes: ALTER TABLE `table_name` ADD `preferences` TEXT
     }
 
     /**
