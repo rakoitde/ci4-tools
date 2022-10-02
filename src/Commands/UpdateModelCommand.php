@@ -60,6 +60,10 @@ class UpdateModelCommand extends BaseCommand
 
     protected $model;
 
+    protected $modelInfos;
+
+    protected $tableInfos;
+
     protected array $toReplace = [];
 
     /**
@@ -71,33 +75,44 @@ class UpdateModelCommand extends BaseCommand
     {
 
         $this->params = $params;
-        $model = $this->getModel();
 
-        $fields = $model->model->db->getFieldNames($model->table);
-        $primaryKey = $this->getPrimaryKey($this->model->model);
-        $allowedFields = $fields;
-        unset($allowedFields[array_search($primaryKey, $fields)]);  # array_search('green', $array)
-        unset($allowedFields[array_search($this->model->createdField, $fields)]);  # array_search('green', $array)
-        unset($allowedFields[array_search($this->model->updatedField, $fields)]);  # array_search('green', $array)
-        unset($allowedFields[array_search($this->model->deletedField, $fields)]);  # array_search('green', $array)
+        $model     = $this->getModel();
+        $modelInfo = $this->modelInfo;
+        $table     = $this->getTable();
 
-        CLI::write("Table: ".CLI::color($model->table, 'white'), 'yellow');
-        CLI::write("  Fields        : ".CLI::color(implode(", ", $fields), 'white'), 'green');
-        CLI::write("  PrimaryKey    : ".CLI::color($primaryKey, 'white'), 'green');
-        CLI::write("  AllowedFields : ".CLI::color(implode(", ", $allowedFields), 'white'), 'green');
-        $missingTimestampFields = array_diff($this->model->timestampFields, $fields);
-
-        $color = $this->forceUseTimestamps() ? "red" : "white";
-        if (count($missingTimestampFields)>0) {
-            CLI::write("  missingTimestampFields : ".CLI::color(implode(", ", $missingTimestampFields), $color), 'green');
+        CLI::write("Model: ".CLI::color($modelInfo->name, 'white'), 'yellow');
+        CLI::write("  Filename     : ".CLI::color($modelInfo->filename, 'white'), 'green');
+        CLI::write("  Table        : ".CLI::color($model->table, 'white'), 'green');
+        CLI::write("  PrimaryKey   : ".CLI::color($modelInfo->primaryKeyMessage, $modelInfo->primaryKeyColor), 'green');
+        CLI::write("  AllowedFields: ".CLI::color($modelInfo->allowedFieldsMessage, 'white').
+            CLI::color($modelInfo->allowedFieldsNeedsUpdateMessage, 'red'), 'green');
+        if ($modelInfo->allowedFieldsNeedsUpdate) {
+            CLI::write("          toAdd: ".CLI::color($modelInfo->missingFieldsMessage, 'blue'), 'green');
+            CLI::write("       toRemove: ".CLI::color($modelInfo->fieldsToRemoveMessage, 'red'), 'green');
+        }
+        CLI::write("  useTimestamps: ".CLI::color($modelInfo->useTimestampsMessage, $modelInfo->useTimestampsColor), 'green');
+        if ($this->model->useTimestamps) {
+            CLI::write("  Fields needed: ".CLI::color(implode(", ", $modelInfo->timestampFields), 'white'), 'green');
         }
         CLI::write("");
 
-        $this->addReplace("protected \$primaryKey = '{replace}';",    $primaryKey);
-        $this->addReplace("protected \$allowedFields = [{replace}];", "'".implode("', '",$allowedFields)."'");
+        CLI::write("Table: ".CLI::color($table->table, 'white'), 'yellow');
+        CLI::write("  Fields        : ".CLI::color(implode(", ", $table->fields), 'white'), 'green');
+        CLI::write("  PrimaryKey    : ".CLI::color($table->primaryKey, 'white'), 'green');
+        CLI::write("  AllowedFields : ".CLI::color($table->allowedFieldsMessage, 'white'), 'green');
+
+
+        $color = $this->forceUseTimestamps() ? "red" : "white";
+        if (count($table->missingTimestampFields)>0) {
+            CLI::write("  missingTimestampFields : ".CLI::color(implode(", ", $table->missingTimestampFields), $color), 'green');
+        }
+        CLI::write("");
+
+        $this->addReplace("protected \$primaryKey = '{replace}';",    $table->primaryKey);
+        $this->addReplace("protected \$allowedFields = [{replace}];", "'".implode("', '",$table->allowedFields)."'");
 
         if ($this->isForced() && $this->forceUseTimestamps()) {
-            $this->addTimestampFields($missingTimestampFields);
+            $this->addTimestampFields();
             $this->addReplace("protected \$useTimestamps =\s*{replace};", json_encode($this->forceUseTimestamps()));
         }
 
@@ -108,64 +123,115 @@ class UpdateModelCommand extends BaseCommand
     protected function getModel()
     {
 
-        $this->model = new class {
+        $modelInfo = new class {
 
             public string $namespace;           
-            public string $table;
-            public string $primaryKey;
-            public array  $allowedFields;
             public string $filename;
-            public bool $useTimestamps;
-            public $createdField;
-            public $updatedField;
-            public $deletedField;
-            public $model;
+            public string $name;
+            public array $timestampFields;
+            public string $primaryKeyColor;
+            public string $primaryKeyMessage;
+            public string $allowedFieldsColor;
+            public string $allowedFieldsMessage;
+            public bool $allowedFieldsNeedsUpdate;
+            public array $missigFields = [];
+            public strin $missigFieldsMessage;
+            public array $fieldsToRemove = [];
+            public string $fieldsToRemoveMessage;
 
         };
 
-        $this->model->namespace     = $this->getOption('namespace');
+        $modelInfo->namespace     = $this->getOption('namespace') ?? "App";
 
         $suffix = $this->getOption('suffix') ? "Model" : "";
-        $this->model->name          = $this->params[0].$suffix; #$this->getOption('namespace').'\\'.
-        $model = model($this->model->name);
-        $this->model->table         = $model->table;
-        $this->model->primaryKey    = $model->primaryKey;
-        $this->model->allowedFields = $model->allowedFields;
-        $this->model->filename      = $this->getFilename(); 
-        $this->model->useTimestamps = $model->useTimestamps;
-        $this->model->createdField  = $model->createdField;
-        $this->model->updatedField  = $model->updatedField;
-        $this->model->deletedField  = $model->deletedField;
-        $this->model->timestampFields = [$model->createdField, $model->updatedField, $model->deletedField];
-        $this->model->model         = $model;
+        $modelInfo->name          = $this->params[0].$suffix;
 
-        CLI::write("Model: ".CLI::color($this->model->name, 'white'), 'yellow');
-        CLI::write("  Filename     : ".CLI::color($this->model->filename, 'white'), 'green');
-        CLI::write("  Table        : ".CLI::color($this->model->table, 'white'), 'green');
-        
-        $color = $this->model->primaryKey == '' ? 'red' : 'white';
-        $primaryKey = $this->model->primaryKey != '' ? $this->model->primaryKey : 'missing => Use --force for Update';
-        CLI::write("  PrimaryKey   : ".CLI::color($primaryKey, $color), 'green');
-        
-        $color = count($this->model->allowedFields)==0 ? 'red' : 'white';
-        $allowedFields = count($this->model->allowedFields)!=0 ? "'".implode("', '", $this->model->allowedFields)."'" : 'missing => Use --force for Update';
-        CLI::write("  AllowedFields: ".CLI::color($allowedFields, $color), 'green');
+        $this->model = $model = model($modelInfo->name);
+        $this->modelInfo = $modelInfo;
 
-        $color = $this->model->useTimestamps != $this->forceUseTimestamps() ? 'red' : 'white';
-        $message = $this->model->useTimestamps != $this->forceUseTimestamps() ? ' => Use --force for Update' : '';
-        CLI::write("  useTimestamps: ".CLI::color(json_encode($this->model->useTimestamps).$message, $color), 'green');
-        if ($this->model->useTimestamps) {
-            CLI::write("  Fields needed: ".CLI::color(implode(", ", $this->model->timestampFields), 'white'), 'green');
-        }
-        CLI::write("");
+        $modelInfo->filename      = $this->getFilename(); 
+        $modelInfo->timestampFields = [$model->createdField, $model->updatedField, $model->deletedField];
+
+        $forceMessage = " => Use --force for Update";
+        
+        $modelInfo->primaryKeyColor = $model->primaryKey == '' ? 'red' : 'white';
+        $modelInfo->primaryKeyMessage = $model->primaryKey != '' ? $model->primaryKey : 'missing'.$forceMessage;
+        
+        $modelInfo->allowedFieldsColor = count($model->allowedFields)==0 ? 'red' : 'white';
+        $allowedFields = "'".implode("', '", $model->allowedFields)."'";
+        $modelInfo->allowedFieldsMessage = count($model->allowedFields)!=0 ? $allowedFields : 'missing'.$forceMessage;
+
+        $modelInfo->useTimestampsColor = $model->useTimestamps != $this->forceUseTimestamps() ? 'red' : 'white';
+        $message = $model->useTimestamps != $this->forceUseTimestamps() ? $forceMessage : '';
+        $modelInfo->useTimestampsMessage = json_encode($model->useTimestamps).$message;
+
+        $this->modelInfo = $modelInfo;
 
         return $this->model;
     }
 
+    protected function getTable()
+    {
+
+        $table = new class {
+            public $table;
+            public $fields;
+            public $primaryKey;
+            public $allowedFields;
+            public $allowedFieldsMessage;
+            public $missingTimestampFields;
+        };
+
+        $model = $this->model;
+        $modelInfo = $this->modelInfo;
+        $forceMessage = " => Use --force for Update";
+
+        $table->table = $model->table;
+        $table->fields = $model->db->getFieldNames($model->table);
+        $table->primaryKey = $this->getPrimaryKey($model);
+
+        if ($model->primaryKey!='' && $model->primaryKey!=$table->primaryKey) {
+            $modelInfo->primaryKeyColor = 'red';
+            $modelInfo->primaryKeyMessage = "'".$model->primaryKey."' is different".$forceMessage;
+        }
+
+        $allowedFields = $table->fields;
+        unset($allowedFields[array_search($table->primaryKey, $table->fields)]);
+        unset($allowedFields[array_search($model->createdField, $table->fields)]);
+        unset($allowedFields[array_search($model->updatedField, $table->fields)]);
+        unset($allowedFields[array_search($model->deletedField, $table->fields)]);
+
+        $table->allowedFields = $allowedFields;
+        $table->allowedFieldsMessage = "'".implode("', '",$allowedFields)."'";
+
+        $table->missingTimestampFields = array_diff($modelInfo->timestampFields, $table->fields);
+
+        $modelInfo->missingFields = array_diff($table->allowedFields, $model->allowedFields);
+        $modelInfo->missingFieldsMessage = "'".implode("', '", $modelInfo->missingFields)."'";
+        $modelInfo->fieldsToRemove = array_diff($model->allowedFields, $table->allowedFields);
+        $modelInfo->fieldsToRemoveMessage = "'".implode("', '", $modelInfo->fieldsToRemove)."'";
+
+        $modelInfo->fieldsAreFine = array_diff($model->allowedFields, $modelInfo->fieldsToRemove);
+        $modelInfo->fieldsAreFineMessage = "'".implode("', '", $modelInfo->fieldsAreFine)."'";
+
+        $modelInfo->allowedFieldsNeedsUpdate = count($modelInfo->missingFields)>0 || count($modelInfo->fieldsToRemove)>0;
+        $modelInfo->allowedFieldsNeedsUpdateMessage = $modelInfo->allowedFieldsNeedsUpdate ? CLI::color(" => Use --force for Update",'red') : '';
+
+
+        $modelInfo->allowedFieldsMessage = $modelInfo->fieldsAreFineMessage;
+        #$modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->missingFieldsMessage, 'blue');
+        #$modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->fieldsToRemoveMessage, 'red');
+
+        $this->table = $table;
+
+        return $table;
+
+    }
+
     protected function getFilename()
     {
-        $source = service('autoloader')->getNamespace($this->model->namespace);
-        $filename = $source[0]."Models/".$this->model->name.".php";
+        $source = service('autoloader')->getNamespace($this->modelInfo->namespace);
+        $filename = $source[0]."Models/".$this->modelInfo->name.".php";
 
         return $filename;
     }
@@ -177,7 +243,7 @@ class UpdateModelCommand extends BaseCommand
 
     protected function useTimestamps(): bool
     {
-        return $this->model->model->useTimestamps;
+        return $this->model->useTimestamps;
     }
 
     protected function forceUseTimestamps(): bool
@@ -210,12 +276,12 @@ class UpdateModelCommand extends BaseCommand
 
     protected function replaceAll()
     {
-        CLI::write("Update Model: ".CLI::color($this->model->name, 'white'), 'yellow');
+        CLI::write("Update Model: ".CLI::color($this->modelInfo->name, 'white'), 'yellow');
 
-        $contents = file_get_contents($this->model->filename);
+        $contents = file_get_contents($this->modelInfo->filename);
 
-        CLI::write("   Save Original: ".CLI::color($this->model->filename.".ori","white"), "green");
-        file_put_contents($this->model->filename.".ori", $contents);
+        CLI::write("   Save Original: ".CLI::color($this->modelInfo->filename.".ori","white"), "green");
+        file_put_contents($this->modelInfo->filename.".ori", $contents);
 
         $search_array  = [" "  , "$"  , "'"  , "["  , "]"  ];
         $replace_array = ["\s*", "\\$", "\\'", "\\[", "\\]"];
@@ -229,12 +295,14 @@ class UpdateModelCommand extends BaseCommand
             $contents = preg_replace($pattern, $value, $contents);
         }
 
-        file_put_contents($this->model->filename, $contents);
+        file_put_contents($this->modelInfo->filename, $contents);
         CLI::write("");
     }
 
-    protected function addTimestampFields($missingTimestampFields)
+    protected function addTimestampFields()
     {
+        $missingTimestampFields = $this->table->missingTimestampFields;
+
         CLI::write("Add Timestamp Columns: ".CLI::color(implode(", ", $missingTimestampFields), 'white'), 'yellow');
 
         $forge = \Config\Database::forge();
