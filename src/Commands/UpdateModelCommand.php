@@ -33,14 +33,14 @@ class UpdateModelCommand extends BaseCommand
      *
      * @var string
      */
-    protected $description = '';
+    protected $description = 'Updates an existing model file.';
 
     /**
      * The Command's Usage
      *
      * @var string
      */
-    protected $usage = 'update:model [arguments] [options]';
+    protected $usage = 'update:model <name> [options]';
 
     /**
      * The Command's Arguments
@@ -53,9 +53,9 @@ class UpdateModelCommand extends BaseCommand
 
     protected $options = [
         '--namespace'     => 'Set root namespace. Default: "APP_NAMESPACE".',
-        '--useTimestamps' => 'Enable use of Timestamps and add fields to table',
         '--suffix'        => 'Append the component title to the class name (e.g. User => UserModel).',
-        '--force'         => 'Force overwrite existing file.',
+        '--useTimestamps' => 'Enable use of Timestamps and add missing fields to table',
+        '--force'         => 'Force overwrite existing file and modify table if needed',
     ];
 
     protected $model;
