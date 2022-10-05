@@ -129,6 +129,18 @@ class UpdateMigrationCommand extends BaseCommand
 
 
         if ($choice=="1") { $this->updateFirstMigrationFile(); }
+        if ($choice=="2") { 
+
+            // Get the contents of the JSON file 
+            $file1 = file_get_contents("/Applications/MAMP/htdocs/ci4test/rakoitde/Test/Database/Migrations/2022-10-03-064801_TestUserMigration.json");
+            $file2 = file_get_contents("/Applications/MAMP/htdocs/ci4test/rakoitde/Test/Database/Migrations/2022-10-04-064801_TestUserMigration.json");
+            // Convert to array 
+            $json1 = json_decode($file1, true);
+            $json2 = json_decode($file2, true);
+
+            #$this->saveTableInfoAsJson($this->migrations[1]);
+
+        }
 
 CLI::write("Namespace: ".CLI::color($this->modelInfo->namespace,"white"),"yellow");
 CLI::write("Model:     ".CLI::color($this->modelInfo->name,"white"),"yellow");
@@ -239,6 +251,7 @@ return;
         CLI::write("Update: ".CLI::color($this->migrations[0]->version."_".$this->migrations[0]->name, "white"), "yellow");
 
         $this->updateMigrationFile($this->migrations[0]);
+        $this->saveTableInfoAsJson($this->migrations[0]);
 
     }
 
@@ -249,11 +262,24 @@ return;
         $down = $this->getDown();
 
         $this->addReplace('(<.*class\s\w*\sextends\sMigration.\{.)(.*)(.\})',   $up.$down);
-        #$this->addReplace('(public function down...\s*..)(.*)(\s*    \})',   $this->down);
-        #$this->addReplace("public function up().*{{replace}}",   $this->up);
-        #$this->addReplace("public function down().*{{replace}}", $this->down);
+
         $this->replaceAll($migration);
     }  
+
+    protected function saveTableInfoAsJson($migration)
+    {
+        $json_file = str_replace(".php", ".json", $migration->path);
+
+        $data = [
+            "table" => $this->model->table,
+            "fields" => $this->model->db->getFieldData($this->model->table),
+            "foreignkeys" => $this->model->db->getForeignKeyData($this->model->table),
+        ];
+
+        CLI::write("saveTableInfoAsJson: ".$json_file);
+
+        file_put_contents($json_file, json_encode($data, JSON_PRETTY_PRINT));
+    }
 
     protected function parseUpForCreateTable()
     {
@@ -520,6 +546,37 @@ return;
 
         return '';
     }
+
+    protected function array_diff_assoc_recursive($array1, $array2) 
+    { 
+        foreach($array1 as $key => $value) 
+        { 
+            if(is_array($value)) 
+            { 
+                  if(!isset($array2[$key])) 
+                  { 
+                      $difference[$key] = $value; 
+                  } 
+                  elseif(!is_array($array2[$key])) 
+                  { 
+                      $difference[$key] = $value; 
+                  } 
+                  else 
+                  { 
+                      $new_diff = $this->array_diff_assoc_recursive($value, $array2[$key]); 
+                      if($new_diff != FALSE) 
+                      { 
+                            $difference[$key] = $new_diff; 
+                      } 
+                  } 
+              } 
+              elseif(!array_key_exists($key, $array2) || $array2[$key] != $value) 
+              { 
+                  $difference[$key] = $value; 
+              } 
+        } 
+        return !isset($difference) ? 0 : $difference; 
+    } 
 
     /**
      * Gets a single command-line option. Returns TRUE if the option exists,
