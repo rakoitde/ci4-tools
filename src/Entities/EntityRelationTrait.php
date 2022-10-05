@@ -20,13 +20,13 @@ use Throwable;
 trait EntityRelationTrait
 {
 
-    public function many($many, $manyForeignKey = null)
+    public function many(string $many_class, string $manyForeignKey = null)
     {
 
         $thisModel = model(str_replace(["Entity","Entities"], ["Model","Models"], get_class($this)));
         $this_pk = $thisModel->primaryKey;
 
-        $manyModel = model($many);
+        $manyModel = model($many_class);
         $many_pk = $manyModel->primaryKey;
 
         $keys = $manyModel->db->getForeignKeyData($manyModel->table);
@@ -34,7 +34,7 @@ trait EntityRelationTrait
         
         foreach ($keys as $key) {
             if ($key->foreign_table_name==$manyModel->table && $key->foreign_column_name==$many_pk) { 
-                    $db_many_fk = $key->column_name; 
+                $db_many_fk = $key->column_name; 
             }            
         }
 
@@ -47,33 +47,32 @@ trait EntityRelationTrait
         return $many;
     }
 
-    public function findMany($many, $manyForeignKey = null)
+    public function findMany(string $many_class, string $manyForeignKey = null)
     {
-        return $this->many($many, $manyForeignKey)->findAll();
+        return $this->many($many_class, $manyForeignKey)->findAll();
     }
 
-    public function manyOver($over, $many, $manyForeignKey = null, $thisForeignKey = null)
+    public function manyOver(string $over_class, string $many_class, string $manyForeignKey = null, string $thisForeignKey = null)
     {
 
         $thisModel = model(str_replace(["Entity","Entities"], ["Model","Models"], get_class($this)));
         $this_pk = $thisModel->primaryKey;
 
-        $manyModel = model($many);
+        $manyModel = model($many_class);
         $many_pk = $manyModel->primaryKey;
 
-        $overModel = model($over);
-        $over_pk = $overModel->primaryKey;
+        $overModel = model($over_class);
 
         $keys = $manyModel->db->getForeignKeyData($overModel->table);
         $db_this_fk = $db_many_fk = null;
         
         foreach ($keys as $key) {
             if ($key->foreign_table_name==$thisModel->table && $key->foreign_column_name==$thisModel->primaryKey) { 
-                    $db_this_fk = $key->column_name; 
+                $db_this_fk = $key->column_name; 
             }
 
             if ($key->foreign_table_name==$manyModel->table && $key->foreign_column_name==$many_pk) { 
-                    $db_many_fk = $key->column_name; 
+                $db_many_fk = $key->column_name; 
             }            
         }
 
@@ -88,9 +87,9 @@ trait EntityRelationTrait
         return $many;
     }
 
-    public function findManyOver($over, $many, $manyForeignKey = null, $thisForeignKey = null)
+    public function findManyOver(string $over_class, string $many_class, string $manyForeignKey = null, string $thisForeignKey = null)
     {
-        return $this->manyOver($over, $many, $manyForeignKey, $thisForeignKey)->findAll();
+        return $this->manyOver($over_class, $many_class, $manyForeignKey, $thisForeignKey)->findAll();
     }
 
 }
