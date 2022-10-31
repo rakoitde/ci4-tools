@@ -47,7 +47,7 @@ class DatabaseBackup extends BaseController
         // Collect Data
         $job  = isset($id) ? $this->model->find($id) : $this->model->first();
         
-        $db = $job ? \Config\Database::connect($job['dbgroup']) : null;
+        $db = $job ? \Config\Database::connect($job->dbgroup) : null;
         $tables = $db ? $db->listTables() : [];
 
         $data = [
