@@ -45,9 +45,9 @@ class DatabaseBackup extends BaseController
         //d($this->model);
 
         // Collect Data
-        $job  = isset($id) ? $this->model->find($id) : $this->model->first();
-        
-        $db = $job ? \Config\Database::connect($job['dbgroup']) : null;
+        $job = isset($id) ? $this->model->find($id) : $this->model->first();
+
+        $db     = $job ? \Config\Database::connect($job['dbgroup']) : null;
         $tables = $db ? $db->listTables() : [];
 
         $data = [
@@ -57,7 +57,7 @@ class DatabaseBackup extends BaseController
             'db'         => $db,
             'tables'     => $tables,
         ];
-        
+
         return view('Rakoitde\Tools\Views\DatabaseBackupView', $data);
     }
 
