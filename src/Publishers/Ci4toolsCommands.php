@@ -1,11 +1,17 @@
 <?php
 
+/**
+ * This file is part of CodeIgniter 4 Tools.
+ *
+ * (c) 2022 Ralf Kornberger <rakoitde@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 namespace App\Publishers;
 
 use CodeIgniter\Publisher\Publisher;
-
-use CodeIgniter\CLI\Options;
-use CodeIgniter\CLI\CLI;
 
 /**
  * This class describes a bootstrap icons publisher.
@@ -46,9 +52,12 @@ class Ci4toolsCommands extends Publisher
             ->merge(true);
     }
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->wipe();
-        if (!is_dir($this->destination)) { mkdir($this->destination, 0777, true); }
+        if (! is_dir($this->destination)) {
+            mkdir($this->destination, 0777, true);
+        }
         parent::__construct();
     }
 }
