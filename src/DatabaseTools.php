@@ -13,15 +13,11 @@ namespace Rakoitde\Tools;
 
 use Rakoitde\Tools\Config\Tools;
 
-use Rakoitde\Tools\Environment;
-use Rakoitde\Tools\Structure;
-
 /**
  * This class describes database tools.
  */
 class DatabaseTools
 {
-
     /**
      * From environment dev, test or prod
      */
@@ -68,16 +64,13 @@ class DatabaseTools
     public Environment $to;
 
     /**
-     * Tables in scope 
+     * Tables in scope
      */
     public array $tables_in_scope;
 
     public array $tables_to_compare;
-
     public array $tables_to_alter;
-
     public array $tables_equal;
-
     public $tables;
 
     /**
@@ -85,44 +78,47 @@ class DatabaseTools
      */
     public function setEnvironment()
     {
-        
-        $this->from_env=$this->config->currentenvironment;
+        $this->from_env = $this->config->currentenvironment;
 
         $nextEnv = false;
+
         foreach ($this->config->environments as $key) {
             $nextEnv = next($this->config->environments);
-            if ($key == $this->from_env) {
+            if ($key === $this->from_env) {
                 break;
             }
         }
-        $this->to_env = $nextEnv;   
+        $this->to_env = $nextEnv;
 
         $this->dev  = (new Environment('dev') )->connect();
         $this->test = (new Environment('test'))->connect();
         $this->prod = (new Environment('prod'))->connect();
 
         switch ($this->from_env) {
-            case 'dev':  $this->from = $this->dev;  break;
+            case 'dev':  $this->from = $this->dev; break;
+
             case 'test': $this->from = $this->test; break;
+
             case 'prod': $this->from = $this->prod; break;
         }
 
         switch ($this->to_env) {
-            case 'dev':  $this->to = $this->dev;  break;
+            case 'dev':  $this->to = $this->dev; break;
+
             case 'test': $this->to = $this->test; break;
+
             case 'prod': $this->to = $this->prod; break;
         }
-
     }
 
     /**
      * Gets the environment.
      *
-     * @return     array  The environment.
+     * @return array The environment.
      */
     public function getEnvironment(): array
     {
-        $env = [
+        return [
             'from' => [
                 'env'         => $this->from_env,
                 'isConnected' => $this->from->isConnected(),
@@ -144,25 +140,23 @@ class DatabaseTools
                 'collation'   => $this->to->db()->DBCollat,
             ],
         ];
-        return $env;
     }
 
     /**
      * Tables in both databases to compare
      *
-     * @return     array  ( description_of_the_return_value )
+     * @return array ( description_of_the_return_value )
      */
     public function getTablesToCompare(): array
     {
-        
         $tables_from = $this->hasTablesInScope() ? array_intersect($this->getTablesInScope(), $this->to->tables()) : $this->to->tables();
         $tables_to   = $this->hasTablesInScope() ? array_intersect($this->getTablesInScope(), $this->from->tables()) : $this->from->tables();
 
-        if (!isset($this->tables_to_compare)) {
+        if (! isset($this->tables_to_compare)) {
             $this->tables_to_compare = array_intersect($tables_from, $tables_to);
         }
 
-        return $this->tables_to_compare; 
+        return $this->tables_to_compare;
     }
 
     public function setTablesInScope($tables_in_scope)
@@ -179,24 +173,23 @@ class DatabaseTools
 
     public function hasTablesInScope()
     {
-        return count($this->tables_in_scope)>0;   
+        return count($this->tables_in_scope) > 0;
     }
 
     /**
      * Compares two environments
      *
-     * @param      string  $from_env  The from environment
-     * @param      string  $to_env    The To environment
+     * @param string $from_env The from environment
+     * @param string $to_env   The To environment
+     * @param mixed  $tables
      */
     public function compare($tables)
     {
-
         $this->setTablesInScope($tables);
 
         $this->setMaxExecutionTime();
 
         if ($this->from->isConnected() && $this->to->isConnected()) {
-
             $tables_from = $this->hasTablesInScope() ? $this->getTablesInScope() : $this->to->tables();
             $tables_to   = $this->hasTablesInScope() ? $this->getTablesInScope() : $this->from->tables();
 
@@ -212,34 +205,31 @@ class DatabaseTools
             $this->to->createCommands($this->from);
             $this->to->dropCommands($this->to);
 
-            #$this->tables_to_compare = array_intersect($this->from->tables(), $this->to->tables());
+            //$this->tables_to_compare = array_intersect($this->from->tables(), $this->to->tables());
             $this->compareTableStructures();
             $this->from->Constraints();
             $this->to->Constraints();
-            #d(array_diff($this->from->ContraintsCommandsStrings(), $this->to->ContraintsCommandsStrings()));
+            //d(array_diff($this->from->ContraintsCommandsStrings(), $this->to->ContraintsCommandsStrings()));
             $this->updateExistingtables();
             $this->determineConstrainsChanges();
-
         } else {
-
             d($this->from->error(), $this->to->error());
-
         }
 
         return $this;
-
     }
 
     /**
      * Sets the maximum execution time.
      *
-     * @param      string  $seconds  The seconds
+     * @param string $seconds The seconds
      *
-     * @return     self    ( description_of_the_return_value )
+     * @return self ( description_of_the_return_value )
      */
     public function setMaxExecutionTime(string $seconds = '300'): self
     {
         ini_set('max_execution_time', $seconds); //300 seconds = 5 minutes
+
         return $this;
     }
 
@@ -294,26 +284,24 @@ class DatabaseTools
     /**
      * Go through each table, compare their sql structure
      *
-     * @param      array  $development_tables
-     * @param      array  $live_tables
+     * @param array $development_tables
+     * @param array $live_tables
      *
-     * @return     array  ( description_of_the_return_value )
+     * @return array ( description_of_the_return_value )
      */
     public function compareTableStructures()
     {
-
         $this->tables_to_alter = [];
-        $this->tables_equal = [];
-
+        $this->tables_equal    = [];
 
         foreach ($this->getTablesToCompare() as $table) {
-            // from 
+            // from
             $from_create_command = $this->from->db()->query("SHOW CREATE TABLE `{$table}` -- dev")->getResultArray()[0];
-            $from_structure = $from_create_command['Create Table'] ?? $from_create_command['Create View'];
+            $from_structure      = $from_create_command['Create Table'] ?? $from_create_command['Create View'];
 
-            // from 
+            // from
             $to_create_command = $this->to->db()->query("SHOW CREATE TABLE `{$table}` -- dev")->getResultArray()[0];
-            $to_structure = $to_create_command['Create Table'] ?? $to_create_command['Create View'];
+            $to_structure      = $to_create_command['Create Table'] ?? $to_create_command['Create View'];
 
             if ($this->countDifferences($from_structure, $to_structure) > 0) {
                 $this->tables_to_alter[] = $table;
@@ -326,10 +314,10 @@ class DatabaseTools
     /**
      * Count differences in 2 sql statements
      *
-     * @param      string  $old
-     * @param      string  $new
+     * @param string $old
+     * @param string $new
      *
-     * @return     int     $differences
+     * @return int $differences
      */
     public function countDifferences($old, $new)
     {
@@ -354,72 +342,68 @@ class DatabaseTools
         return $differences;
     }
 
-
     /**
      * Given an array of tables that differ from DB1 to DB2, update DB2
      *
-     * @param      array   $tables
+     * @param array $tables
      *
-     * @return     <type>  ( description_of_the_return_value )
+     * @return  <type>  ( description_of_the_return_value )
      */
     public function updateExistingtables()
     {
-
         foreach ($this->tables_to_alter as $table) {
-
             $structure = new Structure($table);
             $structure->from($this->from->TableFieldData($table));
-            $structure->to(  $this->to->TableFieldData($table));
+            $structure->to($this->to->TableFieldData($table));
             $structure->compare();
 
             $this->tables[$table] = $structure;
-
         }
-
-        return;
 
     }
 
     /**
      * Given an array of tables that differ from DB1 to DB2, update DB2
      *
-     * @param      array  $tables
+     * @param array $tables
      *
-     * @return     array  ( description_of_the_return_value )
+     * @return array ( description_of_the_return_value )
      */
     public function determineConstrainsChanges()
     {
-
         $from_constraints = $this->from->ContraintsCommandsStrings();
-        $to_constraints = $this->to->ContraintsCommandsStrings();
+        $to_constraints   = $this->to->ContraintsCommandsStrings();
 
         $to_constraints_missing_keys = array_diff(array_keys($this->from->ContraintsCommandsStrings()), array_keys($this->to->ContraintsCommandsStrings()));
-        $to_constraints_missing = [];
+        $to_constraints_missing      = [];
+
         foreach ($to_constraints_missing_keys as $key) {
             $to_constraints_missing[$key] = $from_constraints[$key];
         }
-        
+
         $from_constraints_missing_keys = array_diff(array_keys($this->to->ContraintsCommandsStrings()), array_keys($this->from->ContraintsCommandsStrings()));
-        $from_constraints_missing = [];
+        $from_constraints_missing      = [];
+
         foreach ($from_constraints_missing_keys as $key) {
             $from_constraints_missing[$key] = $to_constraints[$key];
         }
 
         $from_constraints_drop_keys = array_diff(array_merge(array_keys($from_constraints_missing), array_keys($from_constraints)), array_keys($to_constraints));
-        $from_constraints_drop = [];
+        $from_constraints_drop      = [];
+
         foreach ($from_constraints_drop_keys as $key) {
             $from_constraints_drop[$key] = $this->from->constraints[$key]->getDropCommand();
         }
 
         $to_constraints_drop_keys = array_diff(array_merge(array_keys($to_constraints_missing), array_keys($to_constraints)), array_keys($from_constraints));
-        $to_constraints_drop = [];
+        $to_constraints_drop      = [];
+
         foreach ($to_constraints_drop_keys as $key) {
             $to_constraints_drop[$key] = $this->to->constraints[$key]->getDropCommand();
         }
 
-        ### TODO #########
+        //## TODO #########
         d($from_constraints, $from_constraints_missing, $to_constraints, $to_constraints_missing, $from_constraints_drop, $to_constraints_drop);
-
     }
 
     /**
@@ -431,7 +415,5 @@ class DatabaseTools
         $this->config        = Config('Tools');
 
         $this->setEnvironment();
-
     }
-
 }
