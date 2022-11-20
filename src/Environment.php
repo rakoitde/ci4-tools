@@ -13,17 +13,14 @@ namespace Rakoitde\Tools;
 
 use Rakoitde\Tools\Config\Tools;
 
-use Rakoitde\Tools\Command;
-use Rakoitde\Tools\Constraint;
+use Throwable;
 
 /**
  * This class describes an environment.
  */
 class Environment
 {
-
     public string $environment;
-
     protected $db;
 
     /**
@@ -32,44 +29,35 @@ class Environment
     protected $config;
 
     public bool $isconnected = false;
-
     protected string $db_version;
-
-    protected $error = null;
-
+    protected $error;
     public string $db_group;
 
     /**
-     * Tables in scope 
+     * Tables in scope
      */
     public array $tables_in_scope;
 
     public array $tables_to_create;
-
     public array $tables_to_drop;
-
     public array $commands;
-
     public array $constraints;
-
     public array $constraintcommands;
-
 
     /**
      * Connect database of selected environment
      *
-     * @return     self  ( description_of_the_return_value )
+     * @return self ( description_of_the_return_value )
      */
     public function connect(): self
     {
-
         try {
-            $this->db = \Config\Database::connect($this->db_group);
-            $this->db_version = $this->db->getVersion();
+            $this->db          = \Config\Database::connect($this->db_group);
+            $this->db_version  = $this->db->getVersion();
             $this->isconnected = true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->isconnected = false;
-            $this->error = $e;
+            $this->error       = $e;
         }
 
         return $this;
@@ -83,7 +71,7 @@ class Environment
     /**
      * Determines if connected.
      *
-     * @return     bool  True if connected, False otherwise.
+     * @return bool True if connected, False otherwise.
      */
     public function isConnected(): bool
     {
@@ -98,7 +86,7 @@ class Environment
     /**
      * Return connection error
      *
-     * @return     <type>  ( description_of_the_return_value )
+     * @return  <type>  ( description_of_the_return_value )
      */
     public function error()
     {
@@ -108,23 +96,27 @@ class Environment
     /**
      * Return Tables array
      *
-     * @return     array  ( description_of_the_return_value )
+     * @return array ( description_of_the_return_value )
      */
     public function tables()
     {
-        if (!$this->isconnected) { return []; }
-        if (!isset($this->tables)) {
+        if (! $this->isconnected) {
+            return [];
+        }
+        if (! isset($this->tables)) {
             $this->tables = isset($this->tables_in_scope) ? array_intersect($this->tables_in_scope, $this->db->listTables()) : $this->db->listTables();
         }
+
         return $this->tables;
     }
 
     public function tablesToCreate($envtables)
     {
+        if (is_string($envtables)) {
+            $envtables = [$envtables];
+        }
 
-        if (is_string($envtables)) { $envtables = [$envtables]; }
-
-        if (!isset($this->tables_to_create)) {  
+        if (! isset($this->tables_to_create)) {
             $this->tables_to_create = array_diff($envtables, $this->tables());
         }
 
@@ -133,10 +125,11 @@ class Environment
 
     public function tablesToDrop($envtables)
     {
+        if (is_string($envtables)) {
+            $envtables = [$envtables];
+        }
 
-        if (is_string($envtables)) { $envtables = [$envtables]; }
-
-        if (!isset($this->tables_to_drop)) {  
+        if (! isset($this->tables_to_drop)) {
             $this->tables_to_drop = array_diff($this->tables(), $envtables);
         }
 
@@ -146,17 +139,15 @@ class Environment
     /**
      * Create Commands
      *
-     * @param      array   $tables
-     * @param      string  $action
+     * @param array  $tables
+     * @param string $action
      *
-     * @return     array   $sql_commands_to_run
+     * @return array $sql_commands_to_run
      */
     public function createCommands(Environment $env)
     {
-
         foreach ($env->tables_to_create as $table) {
-            
-            $command = new Command();
+            $command          = new Command();
             $command->action  = 'create';
             $command->dbgroup = $this->db->dbgroup;
             $command->table   = $this->db->table;
@@ -166,50 +157,43 @@ class Environment
             $command->command = ($command->result['Create Table'] ?? $command->result['Create View']) . ';';
 
             $env->commands[] = $command;
-
         }
-
     }
 
     /**
      * Manage tables, create or drop them
      *
-     * @param      array   $tables
-     * @param      string  $action
+     * @param array  $tables
+     * @param string $action
      *
-     * @return     array   $sql_commands_to_run
+     * @return array $sql_commands_to_run
      */
     public function dropCommands(Environment $env)
     {
-
         foreach ($env->tables_to_drop as $table) {
-
-            $command = new Command();
+            $command          = new Command();
             $command->action  = 'drop';
             $command->dbgroup = $this->db->dbgroup;
             $command->table   = $this->db->table;
-            $command->query   = "";
-            $command->result  = "";
-            $command->type    = "table";
+            $command->query   = '';
+            $command->result  = '';
+            $command->type    = 'table';
             $command->command = "DROP TABLE {$table};";
 
             $this->commands[] = $command;
-
         }
-        
     }
 
     /**
      * Given a database and a table, compile an array of field meta data
      *
-     * @param      mixed   $db
-     * @param      string  $table
+     * @param mixed  $db
+     * @param string $table
      *
-     * @return     array   $fields
+     * @return array $fields
      */
     public function TableFieldData($table)
     {
-
         $result = $this->db->query("SHOW COLUMNS FROM `{$table}`");
 
         return $result->getResultArray();
@@ -221,14 +205,15 @@ class Environment
      * @param      <type>  $db     The database
      * @param      <type>  $table  The table
      *
-     * @return     <type>  The constraints.
+     * @return  <type>  The constraints.
      */
     public function Constraints()
     {
-
         $tables = implode("', '", $this->tables());
 
-        if (isset($this->constraints)) { return $this->constraints; }
+        if (isset($this->constraints)) {
+            return $this->constraints;
+        }
 
         $shema = $this->db->getDatabase();
 
@@ -263,20 +248,18 @@ class Environment
         }
 
         return $this->constraints;
-
     }
 
     public function ContraintsCommandsStrings()
     {
-
-        if (isset($this->constraintcommands)) { return $this->constraintcommands; } 
+        if (isset($this->constraintcommands)) {
+            return $this->constraintcommands;
+        }
 
         $this->constraintcommands = [];
 
         foreach ($this->constraints as $constraint) {
-
-            $this->constraintcommands[$constraint->name] = (string)$constraint;
-
+            $this->constraintcommands[$constraint->name] = (string) $constraint;
         }
 
         return $this->constraintcommands;
@@ -285,22 +268,22 @@ class Environment
     /**
      * Constructs a new instance.
      *
-     * @param      string  $environment  The environment dev, test or prod
+     * @param string $environment The environment dev, test or prod
      */
     public function __construct(string $environment = 'dev')
     {
+        $environment = in_array($environment, ['dev', 'test', 'prod'], true) ? $environment : 'test';
 
-        $environment = in_array($environment, ['dev','test','prod']) ? $environment : 'test';
-
-        $this->config = Config("Tools");
+        $this->config = Config('Tools');
 
         switch ($environment) {
-            case 'dev' : $this->db_group = $this->config->db_group_dev;  break;
+            case 'dev': $this->db_group = $this->config->db_group_dev; break;
+
             case 'test': $this->db_group = $this->config->db_group_test; break;
-            case 'prod': $this->db_group = $this->config->db_group_prod; break;        
+
+            case 'prod': $this->db_group = $this->config->db_group_prod; break;
         }
 
         $this->environment = $environment;
     }
-
 }
