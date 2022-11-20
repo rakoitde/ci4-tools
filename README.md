@@ -51,6 +51,12 @@ php spark init -all
 
 ## Contribute
 
+### Coding Standard
+
+~~~ {.bash}
+./vendor/bin/php-cs-fixer fix --verbose
+~~~
+
 I'm a hobby programmer who sometimes has more or less time to work on his programming projects. Furthermore, I am not familiar with all github possibilities like pull requests. So yes, contribute, but be patient with me. Many Thanks.
 
 ## Copyright & License
