@@ -1,32 +1,40 @@
 <?php
 
+/**
+ * This file is part of CodeIgniter 4 Tools.
+ *
+ * (c) 2022 Ralf Kornberger <rakoitde@gmail.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 namespace Rakoitde\Tools\Config;
 
 use CodeIgniter\Config\BaseConfig;
 
 class Tools extends BaseConfig
 {
-
     /**
      * Environments
      *
-     * @var        array
+     * @var array
      */
-    public $environments = ['dev','test','prod'];
+    public $environments = ['dev', 'test', 'prod'];
 
     /**
      * Current environment
      *
-     * @var        string
+     * @var string
      */
     public $currentenvironment = 'dev';
 
-	/**
-	 * Database group for development
-	 *
-	 * @var string
-	 */
-	public $db_group_dev = 'default';
+    /**
+     * Database group for development
+     *
+     * @var string
+     */
+    public $db_group_dev = 'default';
 
     /**
      * Database group for testing
@@ -41,5 +49,4 @@ class Tools extends BaseConfig
      * @var string
      */
     public $db_group_prod = 'live';
-
 }
