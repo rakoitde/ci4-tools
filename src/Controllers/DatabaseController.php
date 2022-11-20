@@ -17,21 +17,16 @@ use Rakoitde\Tools\DatabaseTools;
 
 class DatabaseController extends BaseController
 {
-
     public function index()
     {
-
         $tools = new DatabaseTools();
 
-        $tools->compare(["dms_document","dms_relation"]);
+        $tools->compare(['dms_document', 'dms_relation']);
 
-d($tools); 
- 
+        d($tools);
     }
 
     public function __construct()
     {
-
     }
-
 }
