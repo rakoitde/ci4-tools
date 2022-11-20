@@ -16,7 +16,7 @@ use CodeIgniter\CLI\CLI;
 
 use Rakoitde\Tools\GeneratorUpdateTrait;
 
-class UpdateModelCommand extends BaseCommand
+class UpdateEntityCommand extends BaseCommand
 {
     //use GeneratorUpdateTrait;
 
@@ -32,21 +32,21 @@ class UpdateModelCommand extends BaseCommand
      *
      * @var string
      */
-    protected $name = 'update:model';
+    protected $name = 'update:entity';
 
     /**
      * The Command's Description
      *
      * @var string
      */
-    protected $description = 'Updates an existing model file.';
+    protected $description = 'Updates an existing entity file.';
 
     /**
      * The Command's Usage
      *
      * @var string
      */
-    protected $usage = 'update:model <name> [options]';
+    protected $usage = 'update:entity <name> [options]';
 
     /**
      * The Command's Arguments
@@ -54,7 +54,7 @@ class UpdateModelCommand extends BaseCommand
      * @var array
      */
     protected $arguments = [
-        'name' => 'The model class name.',
+        'name' => 'The entity class name.',
     ];
 
     protected $options = [
@@ -77,6 +77,7 @@ class UpdateModelCommand extends BaseCommand
 
         $model     = $this->getModel();
         $modelInfo = $this->modelInfo;
+        $entity    = $this->getEntity();
         $table     = $this->getTable();
 
         CLI::write('Model: ' . CLI::color($modelInfo->name, 'white'), 'yellow');

@@ -13,58 +13,55 @@ namespace Rakoitde\Tools;
 
 use Rakoitde\Tools\Config\Tools;
 
-
 /**
  * This class describes database tools.
  */
 class Command
 {
-
     /**
      * create, update, alter
      *
-     * @var        string
+     * @var string
      */
     public $action;
 
     /**
      * db group name
-     * 
-     * @var        string
+     *
+     * @var string
      */
     public $dbgroup;
-    
+
     /**
      * table name
      *
-     * @var        string
+     * @var string
      */
     public $table;
-    
+
     /**
      * query to get the result
      */
     public $query;
-    
+
     /**
      * the query result
      *
-     * @var        string
+     * @var string
      */
     public $result;
-    
+
     /**
      * table, view, field
      *
-     * @var        string
+     * @var string
      */
     public $type;
-    
+
     /**
      * created command
      *
-     * @var        string
+     * @var string
      */
     public $command;
-
 }
