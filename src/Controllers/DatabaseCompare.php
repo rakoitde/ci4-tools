@@ -12,6 +12,7 @@
 namespace Rakoitde\Tools\Controllers;
 
 use App\Controllers\BaseController;
+use Throwable;
 
 class DatabaseCompare extends BaseController
 {
@@ -22,27 +23,26 @@ class DatabaseCompare extends BaseController
 
     public function index()
     {
-
         ini_set('max_execution_time', '300'); //300 seconds = 5 minutes
 
         // This will become a list of SQL Commands to run on the Live database to bring it up to date
         $sql_commands_to_run = [];
 
-try {
-    $db_dev_version = $this->db_dev->getVersion();
-} catch (\Throwable $e) {
-    d($e);
-    return;
-}
+        try {
+            $db_dev_version = $this->db_dev->getVersion();
+        } catch (Throwable $e) {
+            d($e);
 
+            return;
+        }
 
-try {
-    $db_prid_version = $this->db_prod->getVersion();
-} catch (\Throwable $e) {
-    d($e);
-    return;
-}
+        try {
+            $db_prid_version = $this->db_prod->getVersion();
+        } catch (Throwable $e) {
+            d($e);
 
+            return;
+        }
 
         // list the tables from both database
         $development_tables = $this->db_dev->listTables();
