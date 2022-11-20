@@ -36,3 +36,4 @@ src/.DS_Store
 *.lock
 spark
 src/.DS_Store
+.php-cs-fixer.cache
