@@ -1,45 +1,47 @@
 
-# CodeIgniter Database Tools
+# CodeIgniter Database Relations
 
-## Relations
+Codeigniter 4 does not have an easy way to query tables that are in the relation one2many or many2many. this trait extends entities with simple methods for these relations.
 
-### EntityRelationTrait
+## Installation
+
+### Sparked
+
+Installs all Tools an copies the EntityRelationTrait.php file into App\Entities-Folder.
+
+~~~ shell
+php spark tools:publish
+~~~
+
+### Manlually
+
+If you don't need all Tools, copy the EntityRelationTrait.php from `.\vendor\rakoitde\ci4-tools\src\Entities` into `ROOTPATH\App\Entities`
+
+# Usage
+
+Simply enhance your entities with the `EntityRelationTrait` as follows
 
 ~~~ php
-<?php
+use App\Entities\EntityRelationTrait;
 
-namespace App\Entities;
-
-use CodeIgniter\Entity;
-use App\Entities\EntityTrait;
-
-class UserEntity extends Entity
+class YourEntity extends Entity
 {
-
     use EntityRelationTrait;
-
-    public function permissions()
-    {
-        return $this->findManyOver(PermissionsUsersModel::class, PermissionsModel::class, 'permission_id', 'user_id');
-    }
 
     public function notes()
     {
-        return $this->findMany(UsernotesModel::class);
+        return $this->many(NotesModel::class);
     }
-
-}
 ~~~
 
+# Class Reference
 
-## Class Reference
+- [many](#many) - Returns the entity-many model filtered by the foreign key that matches the ID of the current entity
+- [findMany](#findmany) - Returns the entities of the entity-many model filtered by the foreign key that matches the ID of the current entity
+- [manyOver](#manyover) - Returns the many-to-many model filtered by the foreign key that matches the ID of the current entity
+- [findManyOver](#findmanyover) - Returns the many-to-many entities filtered by the foreign key that matches the ID of the current entity
 
-- [many](#many)
-- [findMany](#findmany)
-- [manyOver](#manyover)
-- [findManyOver](#findmanyover)
-
-### many
+## many
 
 ~~~ php
 function many( string $many_class [ , ?string $manyForeignKey = null ] ) {}
@@ -86,7 +88,7 @@ class YourController extends BaseController
     }
 ~~~
 
-### findMany
+## findMany
 
 ~~~ php
 function findMany(string $many_class [ , ?string $manyForeignKey = null ] ) {}
@@ -133,7 +135,7 @@ class YourController extends BaseController
     }
 ~~~
 
-### manyOver
+## manyOver
 
 ~~~ php
 function manyOver( string $over_class, string $many_class, [ ?string $manyForeignKey = null [ , ?string $thisForeignKey = null ]]) {}
@@ -146,7 +148,7 @@ function manyOver( string $over_class, string $many_class, [ ?string $manyForeig
 - **$thisForeignKey** (`?string`) - The foreign key in the class with many entities. Default: `table_pk` = `user_id`
 
 **Returns:**
-- Returns the entity-many model filtered by the foreign key that matches the ID of the current entity.
+- Returns the many-2-many model filtered by the foreign key that matches the ID of the current entity.
 
 **Example:**
 
@@ -182,7 +184,7 @@ class UsersController extends BaseController
     }
 ~~~
 
-### findManyOver
+## findManyOver
 
 ~~~ php
 function findManyOver( string $over_class, string $many_class, [ ?string $manyForeignKey = null [ , ?string $thisForeignKey = null ]]) {}
@@ -195,7 +197,7 @@ function findManyOver( string $over_class, string $many_class, [ ?string $manyFo
 - **$thisForeignKey** (`?string`) - The foreign key in the class with many entities. Default: `table_pk` = `user_id`
 
 **Returns:**
-- Returns the entity-many model filtered by the foreign key that matches the ID of the current entity.
+- Returns the many-to-many entities filtered by the foreign key that matches the ID of the current entity.
 
 **Example:**
 
