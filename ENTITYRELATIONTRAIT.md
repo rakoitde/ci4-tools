@@ -34,10 +34,10 @@ class UserEntity extends Entity
 
 ## Class Reference
 
-- many
-- findMany
-- manyOver
-- findManyOver
+- [many](#many)
+- [findMany](#findmany)
+- [manyOver](#manyover)
+- [findManyOver](#findmanyover)
 
 ### many
 
