@@ -33,6 +33,10 @@ Composer has the great advantage (besides many others) that you can simply updat
 composer update
 ~~~
 
+## Documentation
+
+[Database Tools - EntityRelationTrait](ENTITYRELATIONTRAIT.md)
+
 ## Tools
 
 ### Commands
