@@ -359,7 +359,6 @@ class DatabaseTools
 
             $this->tables[$table] = $structure;
         }
-
     }
 
     /**
