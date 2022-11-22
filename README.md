@@ -35,7 +35,9 @@ composer update
 
 ## Documentation
 
-[Database Tools - EntityRelationTrait](ENTITYRELATIONTRAIT.md)
+[Database Tools - Entity Relation Trait](ENTITYRELATIONTRAIT.md)
+[Database Tools - Update Model Command](UPDATEMODELCOMMAND.md)
+[Database Tools - Update Entity Command](UPDATEENTITYCOMMAND.md)
 
 ## Tools
 
