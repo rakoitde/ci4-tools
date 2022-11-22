@@ -5,9 +5,11 @@ Codeigniter 4 does not have an easy way to query tables that are in the relation
 
 ## Installation
 
+Usually the tools have been installed in the development environment and the required file has to be copied into your app structure. When using the tool in your productivity environment, you can implement the trait by using `use Rakoitde\Tools\Entities\EntityRelationTrait;`
+
 ### Sparked
 
-Installs all Tools an copies the EntityRelationTrait.php file into App\Entities-Folder.
+Install all the tools and copy the EntityRelationTrait.php file to the App\Entities folder and the namespace will be renamed to `App\Entities`
 
 ~~~ shell
 php spark tools:publish
@@ -15,7 +17,10 @@ php spark tools:publish
 
 ### Manlually
 
-If you don't need all Tools, copy the EntityRelationTrait.php from `.\vendor\rakoitde\ci4-tools\src\Entities` into `ROOTPATH\App\Entities`
+If you don't need all Tools, copy the EntityRelationTrait.php from `.\vendor\rakoitde\ci4-tools\src\Entities` into `ROOTPATH\App\Entities`.
+After that your have to rename the namespace to `App\Entities`
+
+### 
 
 # Usage
 
