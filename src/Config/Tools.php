@@ -34,19 +34,19 @@ class Tools extends BaseConfig
      *
      * @var string
      */
-    public $db_group_dev = 'default';
+    public $db_group_dev = 'dev_db';
 
     /**
      * Database group for testing
      *
      * @var string
      */
-    public $db_group_test = 'kitrz_demo';
+    public $db_group_test = 'test_dp';
 
     /**
      * Database group for produktive
      *
      * @var string
      */
-    public $db_group_prod = 'live';
+    public $db_group_prod = 'prod_db';
 }
