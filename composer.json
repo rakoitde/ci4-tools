@@ -51,5 +51,8 @@
 		"post-update-cmd": [
 			"composer dump-autoload"
 		]
-	}
+	},
+    "extra": {
+        "version": "0.1"
+    }
 }
