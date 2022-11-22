@@ -16,7 +16,7 @@ Meet these simple requirements before using the client:
 It is recommended to install this client via [Composer](https://getcomposer.org/). Change to your project's root directory and fetch the latest stable version:
 
 ~~~ {.bash}
-composer require rakoitde/ci4-tools
+composer require rakoitde/ci4-tools --dev
 ~~~
 
 Instead of sticking to a specific/minimum version you may switch to the current development branch by using `@DEV`:
