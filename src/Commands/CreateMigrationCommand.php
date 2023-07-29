@@ -73,6 +73,10 @@ class CreateMigrationCommand extends BaseCommand
 
     }
 
+    /**
+     * Returns the field data from table
+     *
+     */
     private function getFields()
     {
         $db = db_connect();
@@ -88,6 +92,10 @@ class CreateMigrationCommand extends BaseCommand
         return [];
     }
 
+    /**
+     * Returns the key/index data from table
+     *
+     */
     private function getKeys()
     {
         $db = db_connect();
@@ -103,6 +111,10 @@ class CreateMigrationCommand extends BaseCommand
         return [];
     }
 
+    /**
+     * Returns the foreign key data from table
+     *
+     */
     private function getForeignKeys()
     {
         $db = db_connect();
@@ -110,7 +122,7 @@ class CreateMigrationCommand extends BaseCommand
         if ($db->tableExists($this->tableName)) {
             $keys = $db->getForeignKeyData($this->tableName);
 
-            print_r($keys);
+            #print_r($keys);
 
             return $keys;
         }
@@ -168,6 +180,10 @@ class CreateMigrationCommand extends BaseCommand
         CLI::print(PHP_EOL);
     }
 
+    /**
+     * Generates the migration file and return the path on success
+     *
+     */
     public function generateMigrationFile()
     {
         $migrationName = 'Create_' . ucfirst($this->tableName) . '_table';
@@ -184,6 +200,10 @@ class CreateMigrationCommand extends BaseCommand
         return false;
     }
 
+    /**
+     * Return the generated migration file content
+     *
+     */
     protected function getMigrationContent()
     {
 
@@ -227,6 +247,10 @@ EOT;
         return $migrationTemplate;
     }
 
+    /**
+     * Returns the generated fields content
+     *
+     */
     protected function getFieldContent()
     {
         $fields = $this->getFields();
@@ -245,6 +269,10 @@ EOT;
         return $fieldsContent;
     }
 
+    /**
+     * Returns the generated keys content
+     *
+     */
     protected function getKeysContent()
     {
         $keys = $this->getKeys();
@@ -277,6 +305,10 @@ EOT;
         return $keysContent;
     }
 
+    /**
+     * Returns the generated foreign keys content
+     *
+     */
     protected function getForeignKeysContent()
     {
         $keys = $this->getForeignKeys();
