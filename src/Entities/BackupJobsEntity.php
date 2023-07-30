@@ -11,7 +11,7 @@
 
 namespace Rakoitde\Tools\Entities;
 
-use CodeIgniter\Entity;
+use CodeIgniter\Entity\Entity;
 
 /**
  * This class describes a backup jobs entity.

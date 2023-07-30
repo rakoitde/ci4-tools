@@ -18,7 +18,7 @@ use Rakoitde\Tools\GeneratorUpdateTrait;
 
 class UpdateEntityCommand extends BaseCommand
 {
-    //use GeneratorUpdateTrait;
+    // use GeneratorUpdateTrait;
 
     /**
      * The Command's Group
@@ -64,9 +64,11 @@ class UpdateEntityCommand extends BaseCommand
         '--force'         => 'Force overwrite existing file and modify table if needed',
     ];
     protected $model;
-    protected $modelInfos;
+    protected $modelInfo;
     protected $tableInfos;
     protected array $toReplace = [];
+    protected $params;
+    protected $table;
 
     /**
      * Actually execute a command.
@@ -77,8 +79,8 @@ class UpdateEntityCommand extends BaseCommand
 
         $model     = $this->getModel();
         $modelInfo = $this->modelInfo;
-        $entity    = $this->getEntity();
-        $table     = $this->getTable();
+        // $entity    = $this->getEntity();
+        $table = $this->getTable();
 
         CLI::write('Model: ' . CLI::color($modelInfo->name, 'white'), 'yellow');
         CLI::write('  Filename     : ' . CLI::color($modelInfo->filename, 'white'), 'green');
@@ -133,9 +135,11 @@ class UpdateEntityCommand extends BaseCommand
             public string $allowedFieldsMessage;
             public bool $allowedFieldsNeedsUpdate;
             public array $missigFields = [];
-            public strin $missigFieldsMessage;
+            public string $missigFieldsMessage;
             public array $fieldsToRemove = [];
             public string $fieldsToRemoveMessage;
+            public string $useTimestampsColor;
+            public string $useTimestampsMessage;
         };
 
         $modelInfo->namespace = $this->getOption('namespace') ?? 'App';
@@ -143,7 +147,7 @@ class UpdateEntityCommand extends BaseCommand
         $suffix          = $this->getOption('suffix') ? 'Model' : '';
         $modelInfo->name = $this->params[0] . $suffix;
 
-        $this->model     = $model     = model($modelInfo->name);
+        $this->model     = $model = model($modelInfo->name);
         $this->modelInfo = $modelInfo;
 
         $modelInfo->filename        = $this->getFilename();
@@ -211,8 +215,8 @@ class UpdateEntityCommand extends BaseCommand
         $modelInfo->allowedFieldsNeedsUpdateMessage = $modelInfo->allowedFieldsNeedsUpdate ? CLI::color(' => Use --force for Update', 'red') : '';
 
         $modelInfo->allowedFieldsMessage = $modelInfo->fieldsAreFineMessage;
-        //$modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->missingFieldsMessage, 'blue');
-        //$modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->fieldsToRemoveMessage, 'red');
+        // $modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->missingFieldsMessage, 'blue');
+        // $modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->fieldsToRemoveMessage, 'red');
 
         $this->table = $table;
 

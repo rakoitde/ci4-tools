@@ -23,7 +23,7 @@ class DatabaseCompare extends BaseController
 
     public function index()
     {
-        ini_set('max_execution_time', '300'); //300 seconds = 5 minutes
+        ini_set('max_execution_time', '300'); // 300 seconds = 5 minutes
 
         // This will become a list of SQL Commands to run on the Live database to bring it up to date
         $sql_commands_to_run = [];
@@ -55,11 +55,11 @@ class DatabaseCompare extends BaseController
         /**
          * Create/Drop any tables that are not in the Live database
          */
-        //$sql_commands_to_run = (is_array($tables_to_create) && !empty($tables_to_create)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_create, 'create')) : array();
+        // $sql_commands_to_run = (is_array($tables_to_create) && !empty($tables_to_create)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_create, 'create')) : array();
 
         $sql_commands_to_run = array_merge($sql_commands_to_run, $this->manage_tables($tables_to_create, 'create'));
 
-        //$sql_commands_to_run = (is_array($tables_to_drop) && !empty($tables_to_drop)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_drop, 'drop')) : array();
+        // $sql_commands_to_run = (is_array($tables_to_drop) && !empty($tables_to_drop)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_drop, 'drop')) : array();
         $sql_commands_to_run = array_merge($sql_commands_to_run, $this->manage_tables($tables_to_drop, 'drop'));
 
         $tables_to_update = $this->compare_table_structures($development_tables, $live_tables);
@@ -67,7 +67,7 @@ class DatabaseCompare extends BaseController
         // Before comparing tables, remove any tables from the list that will be created in the $tables_to_create array
         $tables_to_update = array_diff($tables_to_update, $tables_to_create);
         // update tables, add/update/emove columns
-        //$sql_commands_to_run = (is_array($tables_to_update) && !empty($tables_to_update)) ? array_merge($sql_commands_to_run, $this->update_existing_tables($tables_to_update)) : '';
+        // $sql_commands_to_run = (is_array($tables_to_update) && !empty($tables_to_update)) ? array_merge($sql_commands_to_run, $this->update_existing_tables($tables_to_update)) : '';
         $sql_commands_to_run = array_merge($sql_commands_to_run, $this->update_existing_tables($tables_to_update));
 
         $sql_commands_to_run = array_merge($sql_commands_to_run, $this->determine_constrains_changes($development_tables));
@@ -217,9 +217,9 @@ class DatabaseCompare extends BaseController
      */
     public function table_field_data($db, $table)
     {
-        //$conn = mysqli_connect($database["hostname"], $database["username"], $database["password"]);
+        // $conn = mysqli_connect($database["hostname"], $database["username"], $database["password"]);
 
-        //mysql_select_db($database["database"]);
+        // mysql_select_db($database["database"]);
 
         $result = $db->query("SHOW COLUMNS FROM `{$table}`");
 
@@ -331,7 +331,7 @@ class DatabaseCompare extends BaseController
         if (is_array($tables) && ! empty($tables)) {
             foreach ($tables as $table) {
 
-        //d($table);
+                // d($table);
                 $table_constrains_development[$table] = $this->getConstraints($this->db_dev, $table);
                 $table_constrains_live[$table]        = $this->getConstraints($this->db_prod, $table);
 
@@ -350,7 +350,7 @@ class DatabaseCompare extends BaseController
                     $new_constraint    = "ALTER TABLE `{$table}` ADD CONSTRAINT `{$constraint['CONSTRAINT_NAME']}` FOREIGN KEY (`{$constraint['COLUMN_NAME']}`) REFERENCES `{$constraint['REFERENCED_TABLE_NAME']}` (`{$constraint['REFERENCED_COLUMN_NAME']}`) ON DELETE {$constraint['DELETE_RULE']} ON UPDATE {$constraint['UPDATE_RULE']};";
                     $new_constraints[] = $new_constraint;
                     if (! in_array($new_constraint, $existing_constraints, true)) {
-                        //$sql_commands_to_run[] = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint['CONSTRAINT_NAME']}`;";
+                        // $sql_commands_to_run[] = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint['CONSTRAINT_NAME']}`;";
                         $sql_commands_to_run_cache[] = $new_constraint;
                     }
                 }
@@ -371,17 +371,17 @@ class DatabaseCompare extends BaseController
                 $table_constrains_live[$table]        = $this->db_prod->getForeignKeyData($table);
 
                 foreach ($table_constrains_development[$table] as $constraint) {
-                    //$sql_commands_to_run[] = "ALTER TABLE `$table` ADD CONSTRAINT `{$constraint->constraint_name}` FOREIGN KEY (`{$constraint->column_name}`) REFERENCES `{$constraint->foreign_table_name}` (`{$constraint->foreign_column_name}`) ON DELETE CASCADE ON UPDATE RESTRICT;";
+                    // $sql_commands_to_run[] = "ALTER TABLE `$table` ADD CONSTRAINT `{$constraint->constraint_name}` FOREIGN KEY (`{$constraint->column_name}`) REFERENCES `{$constraint->foreign_table_name}` (`{$constraint->foreign_column_name}`) ON DELETE CASCADE ON UPDATE RESTRICT;";
                 }
 
                 foreach ($table_constrains_live[$table] as $constraint) {
-                    //$sql_commands_to_run[] = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint->constraint_name}`;";
+                    // $sql_commands_to_run[] = "ALTER TABLE `$table` DROP FOREIGN KEY `{$constraint->constraint_name}`;";
                 }
             }
         }
 
         // add, remove or update any fields in $table_structure_live
-        //$sql_commands_to_run = array_merge($sql_commands_to_run, $this->determine_field_changes($table_structure_development, $table_structure_live));
+        // $sql_commands_to_run = array_merge($sql_commands_to_run, $this->determine_field_changes($table_structure_development, $table_structure_live));
 
         return $sql_commands_to_run;
     }
@@ -417,4 +417,4 @@ class DatabaseCompare extends BaseController
 }
 
 // End of file compare.php
-                // Location: ./application/controllers/compare.php
+// Location: ./application/controllers/compare.php

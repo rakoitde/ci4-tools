@@ -33,7 +33,7 @@ class Structure
     /**
      * { function_description }
      *
-     * @param      <type>  $from   The from
+     * @param array $from The from
      */
     public function from($from)
     {
@@ -45,7 +45,7 @@ class Structure
     /**
      * { function_description }
      *
-     * @param      <type>  $to     { parameter_description }
+     * @param array $to { parameter_description }
      */
     public function to($to)
     {
@@ -195,7 +195,7 @@ class Structure
     /**
      * Constructs a new instance.
      *
-     * @param      <type>  $table  The table
+     * @param string $table The table
      */
     public function __construct($table)
     {

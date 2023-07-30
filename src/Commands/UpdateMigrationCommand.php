@@ -18,7 +18,7 @@ use Rakoitde\Tools\GeneratorUpdateTrait;
 
 class UpdateMigrationCommand extends BaseCommand
 {
-    //use GeneratorUpdateTrait;
+    // use GeneratorUpdateTrait;
 
     /**
      * The Command's Group
@@ -66,15 +66,17 @@ class UpdateMigrationCommand extends BaseCommand
         '--force'                   => 'Force overwrite existing file and modify table if needed',
     ];
 
-    //$this->db->disableForeignKeyChecks();
+    // $this->db->disableForeignKeyChecks();
     protected $model;
-    protected $modelInfos;
+    protected $modelInfo;
     protected $tableInfos;
     protected array $toReplace  = [];
     protected string $up        = '';
     protected string $down      = '';
     protected array $migrations = [];
     protected array $replace;
+    protected $params;
+    protected $table;
 
     /**
      * Actually execute a command.
@@ -94,8 +96,10 @@ class UpdateMigrationCommand extends BaseCommand
         $m = count($this->migrations);
 
         CLI::write('');
-        CLI::write(CLI::color($m, 'green') . ' migration files found.', 'white');
+        CLI::write(CLI::color((string) $m, 'green') . ' migration files found.', 'white');
         CLI::write(' [0] ' . CLI::color('abort', 'green'), 'green');
+
+        $choices = [''];
 
         if ($m === 0) {
             CLI::write(' [1] ' . CLI::color('create migration file and update with create table', 'white'), 'green');
@@ -139,7 +143,7 @@ class UpdateMigrationCommand extends BaseCommand
             $json1 = json_decode($file1, true);
             $json2 = json_decode($file2, true);
 
-            //$this->saveTableInfoAsJson($this->migrations[1]);
+            // $this->saveTableInfoAsJson($this->migrations[1]);
         }
 
         CLI::write('Namespace: ' . CLI::color($this->modelInfo->namespace, 'white'), 'yellow');
@@ -168,7 +172,7 @@ class UpdateMigrationCommand extends BaseCommand
             public string $allowedFieldsMessage;
             public bool $allowedFieldsNeedsUpdate;
             public array $missigFields = [];
-            public strin $missigFieldsMessage;
+            public string $missigFieldsMessage;
             public array $fieldsToRemove = [];
             public string $fieldsToRemoveMessage;
         };
@@ -179,26 +183,6 @@ class UpdateMigrationCommand extends BaseCommand
         $modelInfo->name = $this->params[0] . $suffix;
 
         $this->model = $model = model($modelInfo->name);
-
-        $this->modelInfo = $modelInfo;
-
-        return;
-
-        $modelInfo->filename        = $this->getFilename();
-        $modelInfo->timestampFields = [$model->createdField, $model->updatedField, $model->deletedField];
-
-        $forceMessage = ' => Use --force for Update';
-
-        $modelInfo->primaryKeyColor   = $model->primaryKey === '' ? 'red' : 'white';
-        $modelInfo->primaryKeyMessage = $model->primaryKey !== '' ? $model->primaryKey : 'missing' . $forceMessage;
-
-        $modelInfo->allowedFieldsColor   = count($model->allowedFields) === 0 ? 'red' : 'white';
-        $allowedFields                   = "'" . implode("', '", $model->allowedFields) . "'";
-        $modelInfo->allowedFieldsMessage = count($model->allowedFields) !== 0 ? $allowedFields : 'missing' . $forceMessage;
-
-        $modelInfo->useTimestampsColor   = $model->useTimestamps !== $this->forceUseTimestamps() ? 'red' : 'white';
-        $message                         = $model->useTimestamps !== $this->forceUseTimestamps() ? $forceMessage : '';
-        $modelInfo->useTimestampsMessage = json_encode($model->useTimestamps) . $message;
 
         $this->modelInfo = $modelInfo;
 
@@ -371,6 +355,8 @@ class UpdateMigrationCommand extends BaseCommand
 
         $fields = $this->model->db->getFieldData($this->model->table);
 
+        $up = '';
+
         foreach ($fields as $field) {
             if ($field->primary_key === 1) {
                 $up = $i . "\$this->forge->addKey('" . $field->name . "', true);" . PHP_EOL;
@@ -379,14 +365,14 @@ class UpdateMigrationCommand extends BaseCommand
 
         $this->up .= $up . PHP_EOL;
         // stdClass Object
-// (
-//     [name] => id
-//     [type] => int
-//     [max_length] => 11
-//     [nullable] =>
-//     [default] =>
-//     [primary_key] => 1
-// )
+        // (
+        //     [name] => id
+        //     [type] => int
+        //     [max_length] => 11
+        //     [nullable] =>
+        //     [default] =>
+        //     [primary_key] => 1
+        // )
 
         // $this->forge->addKey('blog_id', true);
     }
@@ -421,19 +407,19 @@ class UpdateMigrationCommand extends BaseCommand
 
         $contents = file_get_contents($migration->path);
 
-        //CLI::write("   Save Original: ".CLI::color($this->modelInfo->filename.".ori","white"), "green");
-        //file_put_contents($this->modelInfo->filename.".ori", $contents);
+        // CLI::write("   Save Original: ".CLI::color($this->modelInfo->filename.".ori","white"), "green");
+        // file_put_contents($this->modelInfo->filename.".ori", $contents);
 
-        //$search_array  = [" "  , "$"  , "'"  , "["  , "]"  , "{"  , "}"  ];
-        //$replace_array = ["\s*", "\\$", "\\'", "\\[", "\\]", "\\{", "\\}"];
+        // $search_array  = [" "  , "$"  , "'"  , "["  , "]"  , "{"  , "}"  ];
+        // $replace_array = ["\s*", "\\$", "\\'", "\\[", "\\]", "\\{", "\\}"];
 
         foreach ($this->toReplace as $replace) {
-            //$replace->pattern = str_replace($search_array, $replace_array, $replace->pattern);
-            //$p = explode("\\{replace\\}", $replace->pattern);
-            //$pattern = "/({$p[0]})(.*)({$p[1]})/";
+            // $replace->pattern = str_replace($search_array, $replace_array, $replace->pattern);
+            // $p = explode("\\{replace\\}", $replace->pattern);
+            // $pattern = "/({$p[0]})(.*)({$p[1]})/";
             $pattern = '/' . $replace->pattern . '/sm';
             $value   = '$1' . $replace->value . '$3';
-            //CLI::write("   Pattern: ".CLI::color($pattern, 'yellow').CLI::color(' => '.$value, "white"), 'green');
+            // CLI::write("   Pattern: ".CLI::color($pattern, 'yellow').CLI::color(' => '.$value, "white"), 'green');
             $contents = preg_replace($pattern, $value, $contents);
         }
 
@@ -503,8 +489,8 @@ class UpdateMigrationCommand extends BaseCommand
         $modelInfo->allowedFieldsNeedsUpdateMessage = $modelInfo->allowedFieldsNeedsUpdate ? CLI::color(' => Use --force for Update', 'red') : '';
 
         $modelInfo->allowedFieldsMessage = $modelInfo->fieldsAreFineMessage;
-        //$modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->missingFieldsMessage, 'blue');
-        //$modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->fieldsToRemoveMessage, 'red');
+        // $modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->missingFieldsMessage, 'blue');
+        // $modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->fieldsToRemoveMessage, 'red');
 
         $this->table = $table;
 

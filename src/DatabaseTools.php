@@ -95,19 +95,25 @@ class DatabaseTools
         $this->prod = (new Environment('prod'))->connect();
 
         switch ($this->from_env) {
-            case 'dev':  $this->from = $this->dev; break;
+            case 'dev':  $this->from = $this->dev;
+                break;
 
-            case 'test': $this->from = $this->test; break;
+            case 'test': $this->from = $this->test;
+                break;
 
-            case 'prod': $this->from = $this->prod; break;
+            case 'prod': $this->from = $this->prod;
+                break;
         }
 
         switch ($this->to_env) {
-            case 'dev':  $this->to = $this->dev; break;
+            case 'dev':  $this->to = $this->dev;
+                break;
 
-            case 'test': $this->to = $this->test; break;
+            case 'test': $this->to = $this->test;
+                break;
 
-            case 'prod': $this->to = $this->prod; break;
+            case 'prod': $this->to = $this->prod;
+                break;
         }
     }
 
@@ -179,9 +185,7 @@ class DatabaseTools
     /**
      * Compares two environments
      *
-     * @param string $from_env The from environment
-     * @param string $to_env   The To environment
-     * @param mixed  $tables
+     * @param mixed $tables
      */
     public function compare($tables)
     {
@@ -205,11 +209,11 @@ class DatabaseTools
             $this->to->createCommands($this->from);
             $this->to->dropCommands($this->to);
 
-            //$this->tables_to_compare = array_intersect($this->from->tables(), $this->to->tables());
+            // $this->tables_to_compare = array_intersect($this->from->tables(), $this->to->tables());
             $this->compareTableStructures();
             $this->from->Constraints();
             $this->to->Constraints();
-            //d(array_diff($this->from->ContraintsCommandsStrings(), $this->to->ContraintsCommandsStrings()));
+            // d(array_diff($this->from->ContraintsCommandsStrings(), $this->to->ContraintsCommandsStrings()));
             $this->updateExistingtables();
             $this->determineConstrainsChanges();
         } else {
@@ -228,66 +232,13 @@ class DatabaseTools
      */
     public function setMaxExecutionTime(string $seconds = '300'): self
     {
-        ini_set('max_execution_time', $seconds); //300 seconds = 5 minutes
+        ini_set('max_execution_time', $seconds); // 300 seconds = 5 minutes
 
         return $this;
     }
 
     /**
-     * { function_description }
-     */
-    public function tablesToCreate()
-    {
-
-        // list any tables that need to be created or dropped
-        $tables_to_create = array_diff($development_tables, $live_tables);
-        $tables_to_drop   = array_diff($live_tables, $development_tables);
-
-        /**
-         * Create/Drop any tables that are not in the Live database
-         */
-
-        // This will become a list of SQL Commands to run on the Live database to bring it up to date
-        $sql_commands_to_run = [];
-
-        //$sql_commands_to_run = (is_array($tables_to_create) && !empty($tables_to_create)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_create, 'create')) : array();
-
-        $sql_commands_to_run = array_merge($sql_commands_to_run, $this->manage_tables($tables_to_create, 'create'));
-
-        //$sql_commands_to_run = (is_array($tables_to_drop) && !empty($tables_to_drop)) ? array_merge($sql_commands_to_run, $this->manage_tables($tables_to_drop, 'drop')) : array();
-        $sql_commands_to_run = array_merge($sql_commands_to_run, $this->manage_tables($tables_to_drop, 'drop'));
-
-        $tables_to_update = $this->compare_table_structures($development_tables, $live_tables);
-
-        // Before comparing tables, remove any tables from the list that will be created in the $tables_to_create array
-        $tables_to_update = array_diff($tables_to_update, $tables_to_create);
-        // update tables, add/update/emove columns
-        //$sql_commands_to_run = (is_array($tables_to_update) && !empty($tables_to_update)) ? array_merge($sql_commands_to_run, $this->update_existing_tables($tables_to_update)) : '';
-        $sql_commands_to_run = array_merge($sql_commands_to_run, $this->update_existing_tables($tables_to_update));
-
-        $sql_commands_to_run = array_merge($sql_commands_to_run, $this->determine_constrains_changes($development_tables));
-
-        if (is_array($sql_commands_to_run) && ! empty($sql_commands_to_run)) {
-            echo "<h2>The database is out of Sync!</h2>\n";
-            echo "<p>The following SQL commands need to be executed to bring the Live database tables up to date: </p>\n";
-            echo "<pre style='padding: 20px; background-color: #FFFAF0;'>\n";
-
-            foreach ($sql_commands_to_run as $sql_command) {
-                echo "{$sql_command}\n";
-            }
-            echo "<pre>\n";
-        } else {
-            echo "<h2>The database appears to be up to date</h2>\n";
-        }
-    }
-
-    /**
      * Go through each table, compare their sql structure
-     *
-     * @param array $development_tables
-     * @param array $live_tables
-     *
-     * @return array ( description_of_the_return_value )
      */
     public function compareTableStructures()
     {
@@ -344,10 +295,6 @@ class DatabaseTools
 
     /**
      * Given an array of tables that differ from DB1 to DB2, update DB2
-     *
-     * @param array $tables
-     *
-     * @return  <type>  ( description_of_the_return_value )
      */
     public function updateExistingtables()
     {
@@ -363,10 +310,6 @@ class DatabaseTools
 
     /**
      * Given an array of tables that differ from DB1 to DB2, update DB2
-     *
-     * @param array $tables
-     *
-     * @return array ( description_of_the_return_value )
      */
     public function determineConstrainsChanges()
     {
@@ -401,7 +344,7 @@ class DatabaseTools
             $to_constraints_drop[$key] = $this->to->constraints[$key]->getDropCommand();
         }
 
-        //## TODO #########
+        // ## TODO #########
         d($from_constraints, $from_constraints_missing, $to_constraints, $to_constraints_missing, $from_constraints_drop, $to_constraints_drop);
     }
 

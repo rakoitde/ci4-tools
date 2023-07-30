@@ -31,18 +31,16 @@ class DatabaseBackup extends BaseController
     /**
      * { function_description }
      *
-     * @param      <type>  $id     The identifier
-     *
-     * @return  <type>  ( description_of_the_return_value )
+     * @param int|null $id The identifier
      */
     public function index($id = null)
     {
         $myTime = new Time('now', 'Europe/Berlin', 'de_DE');
-        //d($myTime);
+        // d($myTime);
         $myTime = new Time('now');
-        //d("full_backup_".str_replace(" ", "_", $myTime->toDateTimeString() ).".sql");
+        // d("full_backup_".str_replace(" ", "_", $myTime->toDateTimeString() ).".sql");
 
-        //d($this->model);
+        // d($this->model);
 
         // Collect Data
         $job = isset($id) ? $this->model->find($id) : $this->model->first();
@@ -52,7 +50,7 @@ class DatabaseBackup extends BaseController
         $tables = $db ? $db->listTables() : [];
 
         $data = [
-            'createsql'  => $this->backup('auth_groups_permissions'), //$this->backup(),
+            'createsql'  => $this->backup('auth_groups_permissions'), // $this->backup(),
             'backupjobs' => $this->model->orderBy('jobname')->findAll(),
             'job'        => $job,
             'db'         => $db,
@@ -101,7 +99,7 @@ class DatabaseBackup extends BaseController
                     $sqlScript .= "INSERT INTO {$table} VALUES(";
 
                     for ($j = 0; $j < $columnCount; $j++) {
-                        //$row[$j] = $row[$j];
+                        // $row[$j] = $row[$j];
 
                         if (isset($row[$fieldNames[$j]])) {
                             $sqlScript .= '"' . $row[$fieldNames[$j]] . '"';
@@ -130,13 +128,13 @@ class DatabaseBackup extends BaseController
     /**
      * Downloads a backup file.
      *
-     * @param      <type>  $sqlScript  The sql script
+     * @param string $sqlScript The sql script
      */
     public function downloadBackupFile($sqlScript)
     {
         if (! empty($sqlScript)) {
             // Save the SQL script to a backup file
-            $backup_file_name = 'default' . '_backup_' . time() . '.sql';
+            $backup_file_name = 'default_backup_' . time() . '.sql';
             $fileHandler      = fopen($backup_file_name, 'w+b');
             $number_of_lines  = fwrite($fileHandler, $sqlScript);
             fclose($fileHandler);

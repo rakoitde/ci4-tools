@@ -36,8 +36,9 @@ class Environment
     /**
      * Tables in scope
      */
-    public array $tables_in_scope;
+    public array $tables;
 
+    public array $tables_in_scope;
     public array $tables_to_create;
     public array $tables_to_drop;
     public array $commands;
@@ -85,8 +86,6 @@ class Environment
 
     /**
      * Return connection error
-     *
-     * @return  <type>  ( description_of_the_return_value )
      */
     public function error()
     {
@@ -139,9 +138,6 @@ class Environment
     /**
      * Create Commands
      *
-     * @param array  $tables
-     * @param string $action
-     *
      * @return array $sql_commands_to_run
      */
     public function createCommands(Environment $env)
@@ -158,13 +154,12 @@ class Environment
 
             $env->commands[] = $command;
         }
+
+        return $env->commands;
     }
 
     /**
      * Manage tables, create or drop them
-     *
-     * @param array  $tables
-     * @param string $action
      *
      * @return array $sql_commands_to_run
      */
@@ -182,12 +177,13 @@ class Environment
 
             $this->commands[] = $command;
         }
+
+        return $this->commands;
     }
 
     /**
      * Given a database and a table, compile an array of field meta data
      *
-     * @param mixed  $db
      * @param string $table
      *
      * @return array $fields
@@ -202,10 +198,7 @@ class Environment
     /**
      * Gets the constraints.
      *
-     * @param      <type>  $db     The database
-     * @param      <type>  $table  The table
-     *
-     * @return  <type>  The constraints.
+     * @return array The constraints.
      */
     public function Constraints()
     {
@@ -277,11 +270,14 @@ class Environment
         $this->config = Config('Tools');
 
         switch ($environment) {
-            case 'dev': $this->db_group = $this->config->db_group_dev; break;
+            case 'dev': $this->db_group = $this->config->db_group_dev;
+                break;
 
-            case 'test': $this->db_group = $this->config->db_group_test; break;
+            case 'test': $this->db_group = $this->config->db_group_test;
+                break;
 
-            case 'prod': $this->db_group = $this->config->db_group_prod; break;
+            case 'prod': $this->db_group = $this->config->db_group_prod;
+                break;
         }
 
         $this->environment = $environment;

@@ -123,6 +123,6 @@ class ApiDatabaseController extends ResourceController
 
     public function __construct()
     {
-        $this->dbtools = \Config\Services::dbtools();
+        $this->dbtools = \Rakoitde\Tools\Config\Services::dbtools();
     }
 }

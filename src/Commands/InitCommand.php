@@ -161,20 +161,11 @@ class InitCommand extends BaseCommand
 
         $choice = CLI::promptByKey($variable, $choices);
 
-        if ($choice === 0) {
+        if ($choice === '0') {
             return;
         }
 
         $this->env[$default['id']] = $default['key'] . ' = ' . $choices[$choice];
-    }
-
-    private function setUrl(string $variable)
-    {
-        $default = $this->getEnv($variable);
-
-        $url = CLI::prompt($variable, $default['val'], 'required|regex_match[/https?:\/\/(?:w{1,3}\.)?[^\s.]*(?:\.[a-z]+)*(?::\d+)?(?![^<]*(?:<\/\w+>|\/?>))/]');
-
-        $this->env[$default['id']] = $default['key'] . ' = ' . $url;
     }
 
     private function setText(string $variable)
@@ -219,12 +210,12 @@ class InitCommand extends BaseCommand
             $env['commentedout'] = substr(trim($parts[0]), 0, 1) === '#';
             $env['val']          = trim($parts[1]);
 
-            //$parts = explode($this->env[key($line)], "=");
-            //$val=$parts[1];
+            // $parts = explode($this->env[key($line)], "=");
+            // $val=$parts[1];
 
-            //$fruit = CLI::promptByKey('CI_ENVIRONMENT:', ['development', 'production', 'The ripe banana']);
-            //CLI::write('ENV: '. CLI::color('KEY: '.$key, 'red'));
-            //CLI::write('ENV: '. CLI::color('VAL: '.$val, 'red'));
+            // $fruit = CLI::promptByKey('CI_ENVIRONMENT:', ['development', 'production', 'The ripe banana']);
+            // CLI::write('ENV: '. CLI::color('KEY: '.$key, 'red'));
+            // CLI::write('ENV: '. CLI::color('VAL: '.$val, 'red'));
         }
 
         return $env;
