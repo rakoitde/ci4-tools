@@ -131,56 +131,6 @@ class CreateMigrationCommand extends BaseCommand
     }
 
     /**
-     * Delete all idexes for given table
-     *
-     * @param      string  $table  The tablename
-     */
-    private function deleteTableIndex(string $table) {
-        CLI::write("Delete index entries", "yellow");
-        $db = \Config\Database::connect();
-        $builder = $db->table("search_index");
-        $builder->where('table', $table);
-        $builder->delete();
-    }
-
-    /**
-     * Creates an index for given table with given command
-     *
-     * @param      string  $table  The table
-     * @param      string  $sql    The sql
-     */
-    private function createIndex(string $table, string $sql) {
-        CLI::write("Create index entries", "yellow");
-        $commands = explode(";", $sql);
-        foreach ($commands as $command) {
-            if ($command!=="") {
-                $this->runCommand($command);
-            }
-        }
-    }
-
-    /**
-     * Run the insert command
-     *
-     * @param      string  $command  The insert command
-     */
-    private function runCommand($command) {
-        CLI::print("Run command: ", "yellow");
-        if (CLI::getOption("debug")) {
-            CLI::print(trim($command), "white");
-            CLI::print(" ");
-        }
-        $db = \Config\Database::connect();
-        if ($db->simpleQuery($command)) {
-            CLI::print("Success!", "green");
-        } else {
-            CLI::print("Query failed!", "red");
-            CLI::print($db->error(), "red");
-        }
-        CLI::print(PHP_EOL);
-    }
-
-    /**
      * Generates the migration file and return the path on success
      *
      */
@@ -188,7 +138,6 @@ class CreateMigrationCommand extends BaseCommand
     {
         $migrationName = 'Create_' . ucfirst($this->tableName) . '_table';
         $timestamp = date("Y-m-d-His");
-        $timestamp = '2023-07-29-085947';
         $filePath = APPPATH . 'Database/Migrations/' . $timestamp . '_' . $migrationName . '.php';
 
         $migrationContent = $this->getMigrationContent();
@@ -242,6 +191,9 @@ EOT;
         if (count($this->getForeignKeys()) > 0) {
             $migrationTemplate = str_replace('{disableForeignKeyChecks}', "\t\t\$this->db->disableForeignKeyChecks();\n", $migrationTemplate);
             $migrationTemplate = str_replace('{enableForeignKeyChecks}', "\n\t\t\$this->db->enableForeignKeyChecks();", $migrationTemplate);
+        } else {
+            $migrationTemplate = str_replace('{disableForeignKeyChecks}', "", $migrationTemplate);
+            $migrationTemplate = str_replace('{enableForeignKeyChecks}', "", $migrationTemplate);
         }
 
         return $migrationTemplate;
