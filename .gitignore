@@ -134,3 +134,4 @@ nb-configuration.xml
 /.phpunit.*.cache
 
 composer.lock
+.php-cs-fixer.cache
