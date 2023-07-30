@@ -15,24 +15,15 @@
 			"role": "Developer"
 		}
 	],
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/codeigniter4/CodeIgniter4"
-		}
-	],
 	"require": {
 		"php" : ">=7.4"
 	},
 	"minimum-stability": "dev",
-	"prefer-stable": false,
+	"prefer-stable": true,
 	"require-dev": {
-		"phpunit/phpunit": "^8.5",
-		"phpstan/phpstan": "1.7.x-dev",
-		"squizlabs/php_codesniffer": "^3.5",
-		"codeigniter4/framework": "dev-master",
-		"codeigniter4/codeigniter4": "4.x-dev",
-		"codeigniter/coding-standard": "dev-develop"
+		"codeigniter/coding-standard": "*",
+		"codeigniter4/devkit": "^1.1",
+		"codeigniter4/framework": "^4.3"
 	},
 	"autoload": {
 		"psr-4": {
@@ -45,12 +36,17 @@
 		}
 	},
 	"scripts": {
-		"analyze": "./vendor/bin/phpstan analyse src tests",
+		"analyze": "./vendor/bin/phpstan analyse src",
 		"style": "./vendor/bin/php-cs-fixer fix --verbose",
 		"test": "./vendor/bin/phpunit",
 		"post-update-cmd": [
 			"composer dump-autoload"
 		]
 	},
-    "version": "0.1"
+    "version": "0.1",
+	"config": {
+		"allow-plugins": {
+			"phpstan/extension-installer": true
+		}
+	}
 }
