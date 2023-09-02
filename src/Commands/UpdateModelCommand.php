@@ -249,7 +249,7 @@ class UpdateModelCommand extends BaseCommand
         $fields = $model->db->getFieldData($model->table);
 
         foreach ($fields as $field) {
-            if ($field->primary_key === true) {
+            if ($field->primary_key == 1) {
                 return $field->name;
             }
         }
