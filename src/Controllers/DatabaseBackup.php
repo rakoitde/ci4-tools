@@ -12,7 +12,6 @@
 namespace Rakoitde\Tools\Controllers;
 
 use App\Controllers\BaseController;
-
 use CodeIgniter\I18n\Time;
 
 /**

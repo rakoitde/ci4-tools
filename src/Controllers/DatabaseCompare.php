@@ -240,6 +240,7 @@ class DatabaseCompare extends BaseController
             foreach ($fields as $field) {
                 if ($this->in_array_recursive($field['Field'], $destination_field_structures[$table])) {
                     $modify_field = '';
+
                     // Check for required modifications
                     for ($n = 0; $n < count($fields); $n++) {
                         if (isset($fields[$n], $destination_field_structures[$table][$n]) && ($fields[$n]['Field'] === $destination_field_structures[$table][$n]['Field'])) {
@@ -330,7 +331,6 @@ class DatabaseCompare extends BaseController
 
         if (is_array($tables) && ! empty($tables)) {
             foreach ($tables as $table) {
-
                 // d($table);
                 $table_constrains_development[$table] = $this->getConstraints($this->db_dev, $table);
                 $table_constrains_live[$table]        = $this->getConstraints($this->db_prod, $table);

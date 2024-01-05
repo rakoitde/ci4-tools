@@ -13,7 +13,6 @@ namespace Rakoitde\Tools\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-
 use Rakoitde\Tools\GeneratorUpdateTrait;
 
 class UpdateModelCommand extends BaseCommand
@@ -68,6 +67,7 @@ class UpdateModelCommand extends BaseCommand
         '--useTimestamps' => 'Enable use of Timestamps and add missing fields to table',
         '--force'         => 'Force overwrite existing file and modify table if needed',
     ];
+
     protected $model;
     protected $modelInfo;
     protected $tableInfos;
@@ -254,7 +254,7 @@ class UpdateModelCommand extends BaseCommand
         $fields = $model->db->getFieldData($model->table);
 
         foreach ($fields as $field) {
-            if ($field->primary_key == 1) {
+            if ($field->primary_key === 1) {
                 return $field->name;
             }
         }

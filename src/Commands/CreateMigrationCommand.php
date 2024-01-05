@@ -68,7 +68,6 @@ class CreateMigrationCommand extends BaseCommand
      */
     public function run(array $params)
     {
-
         $this->tableName = $params[0];
 
         $migrationFilePath = $this->generateMigrationFile();
@@ -78,7 +77,6 @@ class CreateMigrationCommand extends BaseCommand
         } else {
             echo 'Failed to create migration file.';
         }
-
     }
 
     /**
@@ -90,7 +88,6 @@ class CreateMigrationCommand extends BaseCommand
 
         if ($db->tableExists($this->tableName)) {
             return $db->getFieldData($this->tableName);
-
             // print_r($fields);
         }
 
@@ -106,7 +103,6 @@ class CreateMigrationCommand extends BaseCommand
 
         if ($db->tableExists($this->tableName)) {
             return $db->getIndexData($this->tableName);
-
             // print_r($keys);
         }
 
@@ -122,7 +118,6 @@ class CreateMigrationCommand extends BaseCommand
 
         if ($db->tableExists($this->tableName)) {
             return $db->getForeignKeyData($this->tableName);
-
             // print_r($keys);
         }
 
@@ -152,7 +147,6 @@ class CreateMigrationCommand extends BaseCommand
      */
     protected function getMigrationContent()
     {
-
         $migrationTemplate = <<<'EOT'
             <?php namespace App\Database\Migrations;
 
@@ -227,7 +221,6 @@ class CreateMigrationCommand extends BaseCommand
         $keysContent = '';
 
         foreach ($keys as $name => $key) {
-
             switch ($key->type) {
                 case 'PRIMARY':
                     foreach ($key->fields as $field) {
@@ -249,7 +242,6 @@ class CreateMigrationCommand extends BaseCommand
                     // code...
                     break;
             }
-
         }
 
         return $keysContent;
@@ -265,7 +257,6 @@ class CreateMigrationCommand extends BaseCommand
         $keysContent = '';
 
         foreach ($keys as $key) {
-
             $keysContent .= "\t\t\$this->forge->addForeignKey(";
             $keysContent .= "['" . implode("', '", $key->column_name) . "'], ";
             $keysContent .= "'" . $key->foreign_table_name . "', ";
@@ -274,7 +265,6 @@ class CreateMigrationCommand extends BaseCommand
             $keysContent .= "'" . $key->on_update . "', ";
             $keysContent .= "'" . $key->constraint_name . "', ";
             $keysContent .= ');' . PHP_EOL;
-
         }
 
         return $keysContent;

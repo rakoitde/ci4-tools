@@ -12,7 +12,6 @@
 namespace Rakoitde\Tools;
 
 use Rakoitde\Tools\Config\Tools;
-
 use Throwable;
 
 /**

@@ -13,7 +13,6 @@ namespace Rakoitde\Tools\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-
 use Rakoitde\Tools\GeneratorUpdateTrait;
 
 class UpdateEntityCommand extends BaseCommand
@@ -68,6 +67,7 @@ class UpdateEntityCommand extends BaseCommand
         '--useTimestamps' => 'Enable use of Timestamps and add missing fields to table',
         '--force'         => 'Force overwrite existing file and modify table if needed',
     ];
+
     protected $model;
     protected $modelInfo;
     protected $tableInfos;

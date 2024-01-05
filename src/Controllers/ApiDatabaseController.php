@@ -12,7 +12,6 @@
 namespace Rakoitde\Tools\Controllers;
 
 use CodeIgniter\RESTful\ResourceController;
-
 use Rakoitde\Tools\DatabaseTools as DbTools;
 
 class ApiDatabaseController extends ResourceController

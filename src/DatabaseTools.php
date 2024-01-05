@@ -90,7 +90,7 @@ class DatabaseTools
         }
         $this->to_env = $nextEnv;
 
-        $this->dev  = (new Environment('dev') )->connect();
+        $this->dev  = (new Environment('dev'))->connect();
         $this->test = (new Environment('test'))->connect();
         $this->prod = (new Environment('prod'))->connect();
 

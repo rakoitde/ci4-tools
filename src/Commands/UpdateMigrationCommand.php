@@ -13,7 +13,6 @@ namespace Rakoitde\Tools\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-
 use Rakoitde\Tools\GeneratorUpdateTrait;
 
 class UpdateMigrationCommand extends BaseCommand
@@ -140,7 +139,6 @@ class UpdateMigrationCommand extends BaseCommand
             $this->updateFirstMigrationFile();
         }
         if ($choice === '2') {
-
             // Get the contents of the JSON file
             $file1 = file_get_contents('/Applications/MAMP/htdocs/ci4test/rakoitde/Test/Database/Migrations/2022-10-03-064801_TestUserMigration.json');
             $file2 = file_get_contents('/Applications/MAMP/htdocs/ci4test/rakoitde/Test/Database/Migrations/2022-10-04-064801_TestUserMigration.json');
