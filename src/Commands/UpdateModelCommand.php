@@ -51,12 +51,17 @@ class UpdateModelCommand extends BaseCommand
     /**
      * The Command's Arguments
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $arguments = [
         'name' => 'The model class name.',
     ];
 
+    /**
+     * The Command's Options
+     *
+     * @var array<string, string>
+     */
     protected $options = [
         '--namespace'     => 'Set root namespace. Default: "APP_NAMESPACE".',
         '--suffix'        => 'Append the component title to the class name (e.g. User => UserModel).',

@@ -46,7 +46,7 @@ class CreateMigrationCommand extends BaseCommand
     /**
      * The Command's Arguments
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $arguments = [
         'table' => 'Generates a migration file for this table',
@@ -55,7 +55,7 @@ class CreateMigrationCommand extends BaseCommand
     /**
      * The Command's Options
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $options = [
         '--debug' => 'shows debug informations',
