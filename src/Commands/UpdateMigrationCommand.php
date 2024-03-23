@@ -130,14 +130,16 @@ class UpdateMigrationCommand extends BaseCommand
 
         do {
             $choice = CLI::input('Make youre choise ' . CLI::color('[0]', 'green') . ': ');
-        } while (! in_array($choice, $choices, true));
+        } while (! in_array(trim($choice), $choices, true));
+
         if (in_array($choice, ['', '0'], true)) {
             exit;
         }
 
-        if ($choice === '1') {
+        if ($choice == '1') {
             $this->updateFirstMigrationFile();
         }
+
         if ($choice === '2') {
             // Get the contents of the JSON file
             $file1 = file_get_contents('/Applications/MAMP/htdocs/ci4test/rakoitde/Test/Database/Migrations/2022-10-03-064801_TestUserMigration.json');
@@ -185,7 +187,7 @@ class UpdateMigrationCommand extends BaseCommand
         $suffix          = $this->getOption('suffix') ? 'Model' : '';
         $modelInfo->name = $this->params[0] . $suffix;
 
-        $this->model = $model = model($modelInfo->name);
+        $this->model = model($modelInfo->name);
 
         $this->modelInfo = $modelInfo;
 
@@ -194,7 +196,7 @@ class UpdateMigrationCommand extends BaseCommand
 
     protected function getMigrations()
     {
-        $m          = new \CodeIgniter\Database\MigrationRunner(config('app\\Config\\Migrations'));
+        $m          = new \CodeIgniter\Database\MigrationRunner(config('Migrations'));
         $migrations = $m->findNamespaceMigrations($this->modelInfo->namespace);
 
         $suffix = $this->getOption('suffix') ? 'Migration' : '';
@@ -225,7 +227,9 @@ class UpdateMigrationCommand extends BaseCommand
         if (count($this->migrations) === 0) {
             $namespace = str_replace('\\', '\\\\', $this->modelInfo->namespace);
             $command   = 'make:migration ' . $name . ' --namespace "' . $namespace . '"';
+            CLI::write("Command: " . $command);
             $result    = command($command);
+            $this->getMigrations();
         }
 
         $this->parseUpForCreateTable();
