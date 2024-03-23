@@ -280,8 +280,8 @@ class UpdateModelCommand extends BaseCommand
 
         $contents = file_get_contents($this->modelInfo->filename);
 
-        CLI::write('   Save Original: ' . CLI::color($this->modelInfo->filename . '.ori', 'white'), 'green');
-        file_put_contents($this->modelInfo->filename . '.ori', $contents);
+        #CLI::write('   Save Original: ' . CLI::color($this->modelInfo->filename . '.ori', 'white'), 'green');
+        #file_put_contents($this->modelInfo->filename . '.ori', $contents);
 
         $search_array  = [' ', '$', "'", '[', ']'];
         $replace_array = ['\\s*', '\$', "\\'", '\\[', '\\]'];
