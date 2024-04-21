@@ -142,13 +142,11 @@ class UpdateMigrationCommand extends BaseCommand
 
             $rearranged = $jsonDiff->getRearranged();
 
-            $up = '';
-
-            foreach ($jsonDiff->getModifiedNew() as $type => $array) {
+            foreach ($jsonDiff->getModifiedNew() ?? [] as $type => $array) {
 
                 CLI::write("Modified {$type}:", "yellow");
 
-                $up .= match ($type) {
+                match ($type) {
                     'fields' => $this->parseUpModifyColumns($array, $rearranged),
                     default => $type . PHP_EOL,
                 };
