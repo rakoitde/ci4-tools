@@ -14,6 +14,7 @@ namespace Rakoitde\Tools\Commands;
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
 use Rakoitde\Tools\GeneratorUpdateTrait;
+use Swaggest\JsonDiff\JsonDiff;
 
 class UpdateMigrationCommand extends BaseCommand
 {
@@ -110,26 +111,21 @@ class UpdateMigrationCommand extends BaseCommand
         }
         if ($m === 1) {
             CLI::write(' [1] ' . CLI::color('update 1st file (' . $this->migrations[0]->version . ') with create table', 'white'), 'green');
-            CLI::write(' [2] ' . CLI::color('create 2nd file and update with alter table', 'white'), 'green');
+            CLI::write(' [2] ' . CLI::color('create new file and update with alter table', 'white'), 'green');
             $choices = ['', '0', '1', '2'];
         }
-        if ($m === 2) {
+        if ($m >= 2) {
             CLI::write(' [1] ' . CLI::color('update 1st file (' . $this->migrations[0]->version . ') with create table and remove the rest', 'white'), 'green');
-            CLI::write(' [2] ' . CLI::color('update 2nd file (' . $this->migrations[1]->version . ') with alter table', 'white'), 'green');
-            $choices = ['', '0', '1', '2'];
-        }
-        if ($m > 2) {
-            CLI::write(' [1] ' . CLI::color('update 1st file (' . $this->migrations[0]->version . ') with create table and remove the rest', 'white'), 'green');
-            CLI::write(' [2] ' . CLI::color('update 2nd file (' . $this->migrations[1]->version . ') with alter table and remove the rest', 'white'), 'green');
-            CLI::write(' [3] ' . CLI::color('update last file (' . $this->lastMigrationFile()->version . ') with alter table', 'white'), 'green');
+            CLI::write(' [2] ' . CLI::color('update last file (' . $this->lastMigrationFile()->version . ') with alter table', 'white'), 'green');
+            CLI::write(' [3] ' . CLI::color('create new file and update with alter table', 'white'), 'green');
             $choices = ['', '0', '1', '2', '3'];
         }
 
         CLI::write('');
 
         do {
-            $choice = CLI::input('Make youre choise ' . CLI::color('[0]', 'green') . ': ');
-        } while (! in_array(trim($choice), $choices, true));
+            $choice = trim(CLI::input('Make youre choise ' . CLI::color('[0]', 'green') . ': '));
+        } while (! in_array($choice, $choices, true));
 
         if (in_array($choice, ['', '0'], true)) {
             exit;
@@ -138,16 +134,41 @@ class UpdateMigrationCommand extends BaseCommand
         if ($choice == '1') {
             $this->updateFirstMigrationFile();
         }
-
         if ($choice === '2') {
-            // Get the contents of the JSON file
-            $file1 = file_get_contents('/Applications/MAMP/htdocs/ci4test/rakoitde/Test/Database/Migrations/2022-10-03-064801_TestUserMigration.json');
-            $file2 = file_get_contents('/Applications/MAMP/htdocs/ci4test/rakoitde/Test/Database/Migrations/2022-10-04-064801_TestUserMigration.json');
-            // Convert to array
-            $json1 = json_decode($file1, true);
-            $json2 = json_decode($file2, true);
 
-            // $this->saveTableInfoAsJson($this->migrations[1]);
+            $migrations = $this->migrations[1] ?? null;
+
+            $jsonDiff = $this->getTableStructureDiff();
+
+            $rearranged = $jsonDiff->getRearranged();
+
+            $up = '';
+
+            foreach ($jsonDiff->getModifiedNew() as $type => $array) {
+
+                CLI::write("Modified {$type}:", "yellow");
+
+                $up .= match ($type) {
+                    'fields' => $this->parseUpModifyColumns($array, $rearranged),
+                    default => $type . PHP_EOL,
+                };
+
+            }
+
+            $suffix = $this->getOption('suffix') ? 'Migration' : '';
+            $name   = str_replace('Migration', '', $this->migrations[0]->name) . $suffix . $choice;
+
+            if (null === $migrations) {
+                command("make:migration {$name} --table {$this->table}");
+                $this->getMigrations();
+            }
+
+            $migrations = $this->migrations[1] ?? null;
+
+            if (null !== $migrations) {
+                $this->updateMigrationFile($this->migrations[1]);
+                $this->saveTableInfoAsJson($this->migrations[1]);
+            }
         }
 
         CLI::write('Namespace: ' . CLI::color($this->modelInfo->namespace, 'white'), 'yellow');
@@ -195,18 +216,21 @@ class UpdateMigrationCommand extends BaseCommand
 
     protected function getMigrations()
     {
+
+        $this->migrations = [];
+
         $m          = new \CodeIgniter\Database\MigrationRunner(config('Migrations'));
         $migrations = $m->findNamespaceMigrations($this->modelInfo->namespace);
-
         $suffix = $this->getOption('suffix') ? 'Migration' : '';
         $name   = $this->params[0] . $suffix;
         CLI::write('Migration Name: ' . CLI::color($name, 'white'), 'yellow');
 
         foreach ($migrations as $migration) {
-            if ($migration->name === $name) {
+            if (str_starts_with($migration->name, $name)) {
                 $this->migrations[] = $migration;
             }
         }
+
     }
 
     protected function firstMigrationFile()
@@ -230,7 +254,6 @@ class UpdateMigrationCommand extends BaseCommand
             $result    = command($command);
             $this->getMigrations();
         }
-
         $this->parseUpForCreateTable();
 
         CLI::write('Update: ' . CLI::color($this->migrations[0]->version . '_' . $this->migrations[0]->name, 'white'), 'yellow');
@@ -262,14 +285,68 @@ class UpdateMigrationCommand extends BaseCommand
 
         CLI::write('saveTableInfoAsJson: ' . $json_file);
 
-        file_put_contents($json_file, json_encode($data, JSON_PRETTY_PRINT));
+        file_put_contents($json_file, $this->createJsonInfo());
+    }
+
+    protected function getTableStructureDiff()
+    {
+            $originalFilePath = str_replace('.php', '.json', $this->migrations[0]->path);
+
+            // Get the contents of the JSON file
+            $originalFile = file_get_contents($originalFilePath);
+
+            // Convert to array
+            $originalJson = json_decode($originalFile, true);
+
+            // Generate Diff
+            $jsonDiff = new JsonDiff(
+                $originalJson,
+                json_decode($this->createJsonInfo())
+            );
+
+            return $jsonDiff;
+    }
+
+    protected function parseUpModifyColumns($modified, $rearranged)
+    {
+
+        $fields = [];
+
+        foreach ($modified as $field => $attr) {
+            $fields[] = $rearranged->fields->$field;
+            CLI::write("Field: {$field}: " . json_encode($rearranged->fields->$field));
+        }
+
+        $this->parseUpFields($fields, 'modifyColumn');
+
+        return $this->up;
+    }
+
+    protected function createJsonInfo()
+    {
+
+        $fields = [];
+
+        foreach ($this->model->db->getFieldData($this->model->table) as $field) {
+            $fields[$field->name] = $field;
+        }
+
+        $data = [
+            'table'       => $this->model->table,
+            'fields'      => $fields,
+            'indexes'     => $this->model->db->getIndexData($this->model->table),
+            'foreignkeys' => $this->model->db->getForeignKeyData($this->model->table),
+        ];
+
+        return json_encode($data, JSON_PRETTY_PRINT);
     }
 
     protected function parseUpForCreateTable()
     {
         $this->disableForeignKeyChecks();
 
-        $this->parseUpFields();
+        $fields = $this->model->db->getFieldData($this->model->table);
+        $this->parseUpFields($fields, 'addField');
         $this->parseUpKeys();
         $this->parseUpForeignkeys();
         $this->parseUpTable();
@@ -308,13 +385,13 @@ class UpdateMigrationCommand extends BaseCommand
         return $down;
     }
 
-    protected function parseUpFields()
+    protected function parseUpFields($fields, $function = 'addField')
     {
         $i = '        ';
 
-        $up = $i . '$this->forge->addField([' . PHP_EOL;
+        $up = $i . '$this->forge->' . $function . '([' . PHP_EOL;
 
-        $fields = $this->model->db->getFieldData($this->model->table);
+        #$fields = $this->model->db->getFieldData($this->model->table);
 
         foreach ($fields as $field) {
             $up .= $i . "    '{$field->name}' => [" . PHP_EOL;
@@ -389,6 +466,24 @@ class UpdateMigrationCommand extends BaseCommand
         }
 
         $this->up .= $up . PHP_EOL;
+        // "foreignkeys": {
+        //     "FK_idoit_client_log_idoit_client": {
+        //         "constraint_name": "FK_idoit_client_log_idoit_client",
+        //         "table_name": "idoit_client_log",
+        //         "column_name": [
+        //             "idoit_client_id"
+        //         ],
+        //         "foreign_table_name": "idoit_client",
+        //         "foreign_column_name": [
+        //             "id"
+        //         ],
+        //         "on_delete": "CASCADE",
+        //         "on_update": "CASCADE",
+        //         "match": "NONE"
+        //     }
+        // }
+
+        // $this->forge->addKey('blog_id', true);
     }
 
     protected function parseUpTable()
