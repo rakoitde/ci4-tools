@@ -70,7 +70,6 @@ class UpdateMigrationCommand extends BaseCommand
         '--force'                   => 'Force overwrite existing file and modify table if needed',
     ];
 
-    // $this->db->disableForeignKeyChecks();
     protected $model;
     protected $modelInfo;
     protected $tableInfos;
@@ -233,6 +232,7 @@ class UpdateMigrationCommand extends BaseCommand
         }
 
         $this->parseUpForCreateTable();
+
         CLI::write('Update: ' . CLI::color($this->migrations[0]->version . '_' . $this->migrations[0]->name, 'white'), 'yellow');
 
         $this->updateMigrationFile($this->migrations[0]);
@@ -256,6 +256,7 @@ class UpdateMigrationCommand extends BaseCommand
         $data = [
             'table'       => $this->model->table,
             'fields'      => $this->model->db->getFieldData($this->model->table),
+            'indexes'     => $this->model->db->getIndexData($this->model->table),
             'foreignkeys' => $this->model->db->getForeignKeyData($this->model->table),
         ];
 
@@ -270,6 +271,7 @@ class UpdateMigrationCommand extends BaseCommand
 
         $this->parseUpFields();
         $this->parseUpKeys();
+        $this->parseUpForeignkeys();
         $this->parseUpTable();
         $this->enableForeignKeyChecks();
 
@@ -324,7 +326,7 @@ class UpdateMigrationCommand extends BaseCommand
             //     $up.= $i."        'unsigned'       => true,".PHP_EOL;
             // }
             if ($field->nullable) {
-                $up .= $i . "        'nullable'       => true," . PHP_EOL;
+                $up .= $i . "        'null'           => true," . PHP_EOL;
             }
             if (null !== $field->default) {
                 $up .= $i . "        'default'        => '{$field->default}'," . PHP_EOL;
@@ -338,50 +340,55 @@ class UpdateMigrationCommand extends BaseCommand
 
         $this->up .= $up . PHP_EOL;
 
-        // $this->forge->addField([
-        //     'blog_id' => [
-        //         'type'           => 'INT',
-        //         'constraint'     => 5,
-        //         'unsigned'       => true,
-        //         'auto_increment' => true,
-        //     ],
-        //     'blog_title' => [
-        //         'type'       => 'VARCHAR',
-        //         'constraint' => '100',
-        //     ],
-        //     'blog_description' => [
-        //         'type' => 'TEXT',
-        //         'null' => true,
-        //     ],
-        // ]);
     }
 
     protected function parseUpKeys()
     {
         $i = '        ';
 
-        $fields = $this->model->db->getFieldData($this->model->table);
+        $indexes = $this->model->db->getIndexData($this->model->table);
 
         $up = '';
 
-        foreach ($fields as $field) {
-            if ($field->primary_key === 1) {
-                $up = $i . "\$this->forge->addKey('" . $field->name . "', true);" . PHP_EOL;
+        foreach ($indexes as $index) {
+
+            $fieldArray = "['" . implode("', '", $index->fields) . "']";
+
+            if ($index->type === "PRIMARY") {
+                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", true);" . PHP_EOL;
+            } elseif ($index->type === "INDEX") {
+                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", false, false, '" . $index->name . "');" . PHP_EOL;
+            } elseif ($index->type === "UNIQUE") {
+                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", false, true, '" . $index->name . "');" . PHP_EOL;
+            } else {
+                $up.= $i . "# No Parser for Type >". $index->type ."<" . PHP_EOL;
+                $up.= $i . "# INDEX: " . json_encode($index) . PHP_EOL;
             }
         }
 
         $this->up .= $up . PHP_EOL;
-        // stdClass Object
-        // (
-        //     [name] => id
-        //     [type] => int
-        //     [max_length] => 11
-        //     [nullable] =>
-        //     [default] =>
-        //     [primary_key] => 1
-        // )
 
-        // $this->forge->addKey('blog_id', true);
+    }
+
+    protected function parseUpForeignkeys()
+    {
+        $i = '        ';
+
+        $foreignkeys = $this->model->db->getForeignKeyData($this->model->table);
+
+        $up = '';
+
+        foreach ($foreignkeys as $foreignkey) {
+
+            $up .= $i . "\$this->forge->addForeignKey('" . $foreignkey->column_name[0] . "', '" . $foreignkey->foreign_table_name . "', '" . $foreignkey->foreign_column_name[0] . "', '" . $foreignkey->on_delete . "', '" . $foreignkey->on_update . "', '" . $foreignkey->constraint_name . "');" . PHP_EOL;
+
+
+            #if ($foreignkey->primary_key === 1) {
+            #    $up = $i . "\$this->forge->addKey('" . $foreignkey->name . "', true);" . PHP_EOL;
+            #}
+        }
+
+        $this->up .= $up . PHP_EOL;
     }
 
     protected function parseUpTable()
@@ -411,14 +418,7 @@ class UpdateMigrationCommand extends BaseCommand
     protected function replaceAll($migration)
     {
         CLI::write('Update Migration: ' . CLI::color($migration->version . '_' . $migration->name, 'white'), 'yellow');
-
         $contents = file_get_contents($migration->path);
-
-        // CLI::write("   Save Original: ".CLI::color($this->modelInfo->filename.".ori","white"), "green");
-        // file_put_contents($this->modelInfo->filename.".ori", $contents);
-
-        // $search_array  = [" "  , "$"  , "'"  , "["  , "]"  , "{"  , "}"  ];
-        // $replace_array = ["\s*", "\\$", "\\'", "\\[", "\\]", "\\{", "\\}"];
 
         foreach ($this->toReplace as $replace) {
             // $replace->pattern = str_replace($search_array, $replace_array, $replace->pattern);
