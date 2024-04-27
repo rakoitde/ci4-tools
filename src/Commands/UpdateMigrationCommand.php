@@ -81,6 +81,7 @@ class UpdateMigrationCommand extends BaseCommand
     protected array $replace;
     protected $params;
     protected $table;
+    protected string $i = '        ';
 
     /**
      * Actually execute a command.
@@ -139,19 +140,38 @@ class UpdateMigrationCommand extends BaseCommand
             $migrations = $this->migrations[1] ?? null;
 
             $jsonDiff = $this->getTableStructureDiff();
-
             $rearranged = $jsonDiff->getRearranged();
 
+            // Modified
             foreach ($jsonDiff->getModifiedNew() ?? [] as $type => $array) {
 
                 CLI::write("Modified {$type}:", "yellow");
 
                 match ($type) {
                     'fields' => $this->parseUpModifyColumns($array, $rearranged),
-                    default => $type . PHP_EOL,
+                    default => $type . "\n",
                 };
 
             }
+
+            // Add
+            foreach ($jsonDiff->getAdded() ?? [] as $type => $array) {
+
+                CLI::write("Added {$type}:", "yellow");
+
+                match ($type) {
+                    'fields' => $this->parseUpAddColumns($array, $rearranged),
+                    default => $type . "\n",
+                };
+
+                match ($type) {
+                    'fields' => $this->parseDownDropColumns($array, $rearranged),
+                    default => $type . "\n",
+                };
+
+            }
+
+
 
             $suffix = $this->getOption('suffix') ? 'Migration' : '';
             $name   = str_replace('Migration', '', $this->migrations[0]->name) . $suffix . $choice;
@@ -266,7 +286,6 @@ class UpdateMigrationCommand extends BaseCommand
         $down = $this->getDown();
 
         $this->addReplace('(<.*class\s\w*\sextends\sMigration.\{.)(.*)(.\})', $up . $down);
-
         $this->replaceAll($migration);
     }
 
@@ -315,9 +334,43 @@ class UpdateMigrationCommand extends BaseCommand
             CLI::write("Field: {$field}: " . json_encode($rearranged->fields->$field));
         }
 
-        $this->parseUpFields($fields, 'modifyColumn');
+        $this->up .= $this->i . '$this->forge->modifyColumn(\'' . $this->model->table . '\', [' . "\n";
+        $this->parseUpFields($fields);
+        $this->up .= $this->i . ']);' . "\n";
 
         return $this->up;
+    }
+
+    protected function parseUpAddColumns($modified, $rearranged)
+    {
+
+        $fields = [];
+
+        foreach ($modified as $field => $attr) {
+            $fields[] = $rearranged->fields->$field;
+            CLI::write("Field: {$field}: " . json_encode($rearranged->fields->$field));
+        }
+
+        $this->up .= $this->i . '$this->forge->addColumn(\'' . $this->model->table . '\', [' . "\n";
+        $this->parseUpFields($fields);
+        $this->up .= $this->i . ']);' . "\n";
+
+        return $this->up;
+    }
+
+    protected function parseDownDropColumns($modified, $rearranged)
+    {
+
+        $fields = [];
+
+        foreach ($modified as $field => $attr) {
+            $fields[] = $rearranged->fields->$field;
+            CLI::write("Field: {$field}: " . json_encode($rearranged->fields->$field));
+        }
+
+        $this->down .= $this->i . '$this->forge->dropColumn(\'' . $this->model->table . '\', \'' . $field . '\');' . "\n";
+
+        return $this->down;
     }
 
     protected function createJsonInfo()
@@ -344,7 +397,11 @@ class UpdateMigrationCommand extends BaseCommand
         $this->disableForeignKeyChecks();
 
         $fields = $this->model->db->getFieldData($this->model->table);
-        $this->parseUpFields($fields, 'addField');
+
+        $this->up .= $i . '$this->forge->addField([' . "\n";
+        $this->parseUpFields($fields);
+        $this->up .= $i . ']);' . "\n";
+        #$this->parseUpFields($fields, 'addField');
         $this->parseUpKeys();
         $this->parseUpForeignkeys();
         $this->parseUpTable();
@@ -357,13 +414,11 @@ class UpdateMigrationCommand extends BaseCommand
     {
         $i = '        ';
 
-        $up = PHP_EOL;
-        $up .= '    public function up()' . PHP_EOL;
-        $up .= '    {' . PHP_EOL;
-        $up .= PHP_EOL;
+        $up = '';
+        $up .= '    public function up()' . "\n";
+        $up .= '    {' . "\n";
         $up .= $this->up;
-        $up .= '    }' . PHP_EOL;
-        $up .= PHP_EOL;
+        $up .= '    }' . "\n";
 
         return $up;
     }
@@ -372,48 +427,46 @@ class UpdateMigrationCommand extends BaseCommand
     {
         $i = '        ';
 
-        $down = PHP_EOL;
-        $down .= '    public function down()' . PHP_EOL;
-        $down .= '    {' . PHP_EOL;
-        $down .= PHP_EOL;
+        $down = "\n";
+        $down .= '    public function down()' . "\n";
+        $down .= '    {' . "\n";
         $down .= $this->down;
-        $down .= '    }' . PHP_EOL;
-        $down .= PHP_EOL;
+        $down .= '    }';
 
         return $down;
     }
 
-    protected function parseUpFields($fields, $function = 'addField')
+    protected function parseUpFields($fields)
     {
         $i = '        ';
-
-        $up = $i . '$this->forge->' . $function . '([' . PHP_EOL;
+        $up = '';
+        #$up = $i . '$this->forge->' . $function . '([' . "\n";
 
         #$fields = $this->model->db->getFieldData($this->model->table);
 
         foreach ($fields as $field) {
-            $up .= $i . "    '{$field->name}' => [" . PHP_EOL;
-            $up .= $i . "        'type'           => '{$field->type}'," . PHP_EOL;
+            $up .= $i . "    '{$field->name}' => [" . "\n";
+            $up .= $i . "        'type'           => '{$field->type}'," . "\n";
             if ($field->max_length) {
-                $up .= $i . "        'constraint'     => {$field->max_length}," . PHP_EOL;
+                $up .= $i . "        'constraint'     => {$field->max_length}," . "\n";
             }
             // if ($field->unsigned) {
             //     $up.= $i."        'unsigned'       => true,".PHP_EOL;
             // }
             if ($field->nullable) {
-                $up .= $i . "        'null'           => true," . PHP_EOL;
+                $up .= $i . "        'null'           => true," . "\n";
             }
             if (null !== $field->default) {
-                $up .= $i . "        'default'        => '{$field->default}'," . PHP_EOL;
+                $up .= $i . "        'default'        => '{$field->default}'," . "\n";
             }
             if ($field->primary_key === 1) {
-                $up .= $i . "        'auto_increment' => true," . PHP_EOL;
+                $up .= $i . "        'auto_increment' => true," . "\n";
             }
-            $up .= $i . '    ],' . PHP_EOL;
+            $up .= $i . '    ],' . "\n";
         }
-        $up .= $i . ']);' . PHP_EOL;
+        #$up .= $i . ']);' . "\n";
 
-        $this->up .= $up . PHP_EOL;
+        $this->up .= $up ;
 
     }
 
@@ -430,18 +483,18 @@ class UpdateMigrationCommand extends BaseCommand
             $fieldArray = "['" . implode("', '", $index->fields) . "']";
 
             if ($index->type === "PRIMARY") {
-                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", true);" . PHP_EOL;
+                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", true);" . "\n";
             } elseif ($index->type === "INDEX") {
-                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", false, false, '" . $index->name . "');" . PHP_EOL;
+                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", false, false, '" . $index->name . "');" . "\n";
             } elseif ($index->type === "UNIQUE") {
-                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", false, true, '" . $index->name . "');" . PHP_EOL;
+                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", false, true, '" . $index->name . "');" . "\n";
             } else {
-                $up.= $i . "# No Parser for Type >". $index->type ."<" . PHP_EOL;
-                $up.= $i . "# INDEX: " . json_encode($index) . PHP_EOL;
+                $up.= $i . "# No Parser for Type >". $index->type ."<" . "\n";
+                $up.= $i . "# INDEX: " . json_encode($index) . "\n";
             }
         }
 
-        $this->up .= $up . PHP_EOL;
+        $this->up .= $up . "\n";
 
     }
 
@@ -455,15 +508,15 @@ class UpdateMigrationCommand extends BaseCommand
 
         foreach ($foreignkeys as $foreignkey) {
 
-            $up .= $i . "\$this->forge->addForeignKey('" . $foreignkey->column_name[0] . "', '" . $foreignkey->foreign_table_name . "', '" . $foreignkey->foreign_column_name[0] . "', '" . $foreignkey->on_delete . "', '" . $foreignkey->on_update . "', '" . $foreignkey->constraint_name . "');" . PHP_EOL;
+            $up .= $i . "\$this->forge->addForeignKey('" . $foreignkey->column_name[0] . "', '" . $foreignkey->foreign_table_name . "', '" . $foreignkey->foreign_column_name[0] . "', '" . $foreignkey->on_delete . "', '" . $foreignkey->on_update . "', '" . $foreignkey->constraint_name . "');" . "\n";
 
 
             #if ($foreignkey->primary_key === 1) {
-            #    $up = $i . "\$this->forge->addKey('" . $foreignkey->name . "', true);" . PHP_EOL;
+            #    $up = $i . "\$this->forge->addKey('" . $foreignkey->name . "', true);" . "\n";
             #}
         }
 
-        $this->up .= $up . PHP_EOL;
+        $this->up .= $up . "\n";
         // "foreignkeys": {
         //     "FK_idoit_client_log_idoit_client": {
         //         "constraint_name": "FK_idoit_client_log_idoit_client",
@@ -487,13 +540,13 @@ class UpdateMigrationCommand extends BaseCommand
     protected function parseUpTable()
     {
         $i = '        ';
-        $this->up .= $i . "\$this->forge->createTable('" . $this->model->table . "');" . PHP_EOL . PHP_EOL;
+        $this->up .= $i . "\$this->forge->createTable('" . $this->model->table . "');" . "\n" . "\n";
     }
 
     protected function parseDownTable()
     {
         $i = '        ';
-        $this->down .= $i . "\$this->forge->dropTable('" . $this->model->table . "');" . PHP_EOL . PHP_EOL;
+        $this->down .= $i . "\$this->forge->dropTable('" . $this->model->table . "');" . "\n" . "\n";
     }
 
     protected function addReplace($pattern, $value)
@@ -512,7 +565,6 @@ class UpdateMigrationCommand extends BaseCommand
     {
         CLI::write('Update Migration: ' . CLI::color($migration->version . '_' . $migration->name, 'white'), 'yellow');
         $contents = file_get_contents($migration->path);
-
         foreach ($this->toReplace as $replace) {
             // $replace->pattern = str_replace($search_array, $replace_array, $replace->pattern);
             // $p = explode("\\{replace\\}", $replace->pattern);
@@ -522,7 +574,6 @@ class UpdateMigrationCommand extends BaseCommand
             // CLI::write("   Pattern: ".CLI::color($pattern, 'yellow').CLI::color(' => '.$value, "white"), 'green');
             $contents = preg_replace($pattern, $value, $contents);
         }
-
         file_put_contents($migration->path, $contents);
         CLI::write('');
     }
@@ -533,7 +584,7 @@ class UpdateMigrationCommand extends BaseCommand
             return;
         }
         $i = '        ';
-        $this->up .= $i . '$this->db->disableForeignKeyChecks();' . PHP_EOL . PHP_EOL;
+        $this->up .= $i . '$this->db->disableForeignKeyChecks();' . "\n" . "\n";
     }
 
     protected function enableForeignKeyChecks()
@@ -542,66 +593,7 @@ class UpdateMigrationCommand extends BaseCommand
             return;
         }
         $i = '        ';
-        $this->up .= $i . '$this->db->enableForeignKeyChecks();' . PHP_EOL . PHP_EOL;
-    }
-
-    protected function getTable()
-    {
-        $table = new class () {
-            public $table;
-            public $fields;
-            public $primaryKey;
-            public $allowedFields;
-            public $allowedFieldsMessage;
-            public $missingTimestampFields;
-        };
-
-        $model        = $this->model;
-        $modelInfo    = $this->modelInfo;
-        $forceMessage = ' => Use --force for Update';
-
-        $table->table      = $model->table;
-        $table->fields     = $model->db->getFieldNames($model->table);
-        $table->primaryKey = $this->getPrimaryKey($model);
-
-        if ($model->primaryKey !== '' && $model->primaryKey !== $table->primaryKey) {
-            $modelInfo->primaryKeyColor   = 'red';
-            $modelInfo->primaryKeyMessage = "'" . $model->primaryKey . "' is different" . $forceMessage;
-        }
-
-        $allowedFields = $table->fields;
-        unset($allowedFields[array_search($table->primaryKey, $table->fields, true)], $allowedFields[array_search($model->createdField, $table->fields, true)], $allowedFields[array_search($model->updatedField, $table->fields, true)], $allowedFields[array_search($model->deletedField, $table->fields, true)]);
-
-        $table->allowedFields        = $allowedFields;
-        $table->allowedFieldsMessage = "'" . implode("', '", $allowedFields) . "'";
-
-        $table->missingTimestampFields = array_diff($modelInfo->timestampFields, $table->fields);
-
-        $modelInfo->missingFields         = array_diff($table->allowedFields, $model->allowedFields);
-        $modelInfo->missingFieldsMessage  = "'" . implode("', '", $modelInfo->missingFields) . "'";
-        $modelInfo->fieldsToRemove        = array_diff($model->allowedFields, $table->allowedFields);
-        $modelInfo->fieldsToRemoveMessage = "'" . implode("', '", $modelInfo->fieldsToRemove) . "'";
-
-        $modelInfo->fieldsAreFine        = array_diff($model->allowedFields, $modelInfo->fieldsToRemove);
-        $modelInfo->fieldsAreFineMessage = "'" . implode("', '", $modelInfo->fieldsAreFine) . "'";
-
-        $modelInfo->allowedFieldsNeedsUpdate        = count($modelInfo->missingFields) > 0 || count($modelInfo->fieldsToRemove) > 0;
-        $modelInfo->allowedFieldsNeedsUpdateMessage = $modelInfo->allowedFieldsNeedsUpdate ? CLI::color(' => Use --force for Update', 'red') : '';
-
-        $modelInfo->allowedFieldsMessage = $modelInfo->fieldsAreFineMessage;
-        // $modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->missingFieldsMessage, 'blue');
-        // $modelInfo->allowedFieldsMessage.= ",".CLI::color($modelInfo->fieldsToRemoveMessage, 'red');
-
-        $this->table = $table;
-
-        return $table;
-    }
-
-    protected function getFilename()
-    {
-        $source = service('autoloader')->getNamespace($this->modelInfo->namespace);
-
-        return $source[0] . 'Models/' . $this->modelInfo->name . '.php';
+        $this->up .= $i . '$this->db->enableForeignKeyChecks();' . "\n" . "\n";
     }
 
     protected function isForced(): bool
@@ -609,40 +601,6 @@ class UpdateMigrationCommand extends BaseCommand
         return $this->getOption('force') ? true : false;
     }
 
-    protected function getPrimaryKey($model): string
-    {
-        $fields = $model->db->getFieldData($model->table);
-
-        foreach ($fields as $field) {
-            if ($field->primary_key === true) {
-                return $field->name;
-            }
-        }
-
-        return '';
-    }
-
-    protected function array_diff_assoc_recursive($array1, $array2)
-    {
-        foreach ($array1 as $key => $value) {
-            if (is_array($value)) {
-                if (! isset($array2[$key])) {
-                    $difference[$key] = $value;
-                } elseif (! is_array($array2[$key])) {
-                    $difference[$key] = $value;
-                } else {
-                    $new_diff = $this->array_diff_assoc_recursive($value, $array2[$key]);
-                    if ($new_diff !== false) {
-                        $difference[$key] = $new_diff;
-                    }
-                }
-            } elseif (! array_key_exists($key, $array2) || $array2[$key] !== $value) {
-                $difference[$key] = $value;
-            }
-        }
-
-        return ! isset($difference) ? 0 : $difference;
-    }
 
     /**
      * Gets a single command-line option. Returns TRUE if the option exists,
