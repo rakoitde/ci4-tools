@@ -398,9 +398,9 @@ class UpdateMigrationCommand extends BaseCommand
 
         $fields = $this->model->db->getFieldData($this->model->table);
 
-        $this->up .= $i . '$this->forge->addField([' . "\n";
+        $this->up .= $this->i . '$this->forge->addField([' . "\n";
         $this->parseUpFields($fields);
-        $this->up .= $i . ']);' . "\n";
+        $this->up .= $this->i . ']);' . "\n";
         #$this->parseUpFields($fields, 'addField');
         $this->parseUpKeys();
         $this->parseUpForeignkeys();
@@ -412,7 +412,6 @@ class UpdateMigrationCommand extends BaseCommand
 
     protected function getUp()
     {
-        $i = '        ';
 
         $up = '';
         $up .= '    public function up()' . "\n";
@@ -425,7 +424,6 @@ class UpdateMigrationCommand extends BaseCommand
 
     protected function getDown()
     {
-        $i = '        ';
 
         $down = "\n";
         $down .= '    public function down()' . "\n";
@@ -438,33 +436,32 @@ class UpdateMigrationCommand extends BaseCommand
 
     protected function parseUpFields($fields)
     {
-        $i = '        ';
         $up = '';
-        #$up = $i . '$this->forge->' . $function . '([' . "\n";
+        #$up = $this->i . '$this->forge->' . $function . '([' . "\n";
 
         #$fields = $this->model->db->getFieldData($this->model->table);
 
         foreach ($fields as $field) {
-            $up .= $i . "    '{$field->name}' => [" . "\n";
-            $up .= $i . "        'type'           => '{$field->type}'," . "\n";
+            $up .= $this->i . "    '{$field->name}' => [" . "\n";
+            $up .= $this->i . "        'type'           => '{$field->type}'," . "\n";
             if ($field->max_length) {
-                $up .= $i . "        'constraint'     => {$field->max_length}," . "\n";
+                $up .= $this->i . "        'constraint'     => {$field->max_length}," . "\n";
             }
             // if ($field->unsigned) {
             //     $up.= $i."        'unsigned'       => true,".PHP_EOL;
             // }
             if ($field->nullable) {
-                $up .= $i . "        'null'           => true," . "\n";
+                $up .= $this->i . "        'null'           => true," . "\n";
             }
             if (null !== $field->default) {
-                $up .= $i . "        'default'        => '{$field->default}'," . "\n";
+                $up .= $this->i . "        'default'        => '{$field->default}'," . "\n";
             }
             if ($field->primary_key === 1) {
-                $up .= $i . "        'auto_increment' => true," . "\n";
+                $up .= $this->i . "        'auto_increment' => true," . "\n";
             }
-            $up .= $i . '    ],' . "\n";
+            $up .= $this->i . '    ],' . "\n";
         }
-        #$up .= $i . ']);' . "\n";
+        #$up .= $this->i . ']);' . "\n";
 
         $this->up .= $up ;
 
@@ -472,7 +469,6 @@ class UpdateMigrationCommand extends BaseCommand
 
     protected function parseUpKeys()
     {
-        $i = '        ';
 
         $indexes = $this->model->db->getIndexData($this->model->table);
 
@@ -483,14 +479,14 @@ class UpdateMigrationCommand extends BaseCommand
             $fieldArray = "['" . implode("', '", $index->fields) . "']";
 
             if ($index->type === "PRIMARY") {
-                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", true);" . "\n";
+                $up.= $this->i . "\$this->forge->addKey(" . $fieldArray . ", true);" . "\n";
             } elseif ($index->type === "INDEX") {
-                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", false, false, '" . $index->name . "');" . "\n";
+                $up.= $this->i . "\$this->forge->addKey(" . $fieldArray . ", false, false, '" . $index->name . "');" . "\n";
             } elseif ($index->type === "UNIQUE") {
-                $up.= $i . "\$this->forge->addKey(" . $fieldArray . ", false, true, '" . $index->name . "');" . "\n";
+                $up.= $this->i . "\$this->forge->addKey(" . $fieldArray . ", false, true, '" . $index->name . "');" . "\n";
             } else {
-                $up.= $i . "# No Parser for Type >". $index->type ."<" . "\n";
-                $up.= $i . "# INDEX: " . json_encode($index) . "\n";
+                $up.= $this->i . "# No Parser for Type >". $index->type ."<" . "\n";
+                $up.= $this->i . "# INDEX: " . json_encode($index) . "\n";
             }
         }
 
@@ -500,7 +496,6 @@ class UpdateMigrationCommand extends BaseCommand
 
     protected function parseUpForeignkeys()
     {
-        $i = '        ';
 
         $foreignkeys = $this->model->db->getForeignKeyData($this->model->table);
 
@@ -508,11 +503,11 @@ class UpdateMigrationCommand extends BaseCommand
 
         foreach ($foreignkeys as $foreignkey) {
 
-            $up .= $i . "\$this->forge->addForeignKey('" . $foreignkey->column_name[0] . "', '" . $foreignkey->foreign_table_name . "', '" . $foreignkey->foreign_column_name[0] . "', '" . $foreignkey->on_delete . "', '" . $foreignkey->on_update . "', '" . $foreignkey->constraint_name . "');" . "\n";
+            $up .= $this->i . "\$this->forge->addForeignKey('" . $foreignkey->column_name[0] . "', '" . $foreignkey->foreign_table_name . "', '" . $foreignkey->foreign_column_name[0] . "', '" . $foreignkey->on_delete . "', '" . $foreignkey->on_update . "', '" . $foreignkey->constraint_name . "');" . "\n";
 
 
             #if ($foreignkey->primary_key === 1) {
-            #    $up = $i . "\$this->forge->addKey('" . $foreignkey->name . "', true);" . "\n";
+            #    $up = $this->i . "\$this->forge->addKey('" . $foreignkey->name . "', true);" . "\n";
             #}
         }
 
@@ -539,14 +534,12 @@ class UpdateMigrationCommand extends BaseCommand
 
     protected function parseUpTable()
     {
-        $i = '        ';
-        $this->up .= $i . "\$this->forge->createTable('" . $this->model->table . "');" . "\n" . "\n";
+        $this->up .= $this->i . "\$this->forge->createTable('" . $this->model->table . "');" . "\n" . "\n";
     }
 
     protected function parseDownTable()
     {
-        $i = '        ';
-        $this->down .= $i . "\$this->forge->dropTable('" . $this->model->table . "');" . "\n" . "\n";
+        $this->down .= $this->i . "\$this->forge->dropTable('" . $this->model->table . "');" . "\n" . "\n";
     }
 
     protected function addReplace($pattern, $value)
@@ -583,8 +576,7 @@ class UpdateMigrationCommand extends BaseCommand
         if (! $this->getOption('disableForeignKeyChecks')) {
             return;
         }
-        $i = '        ';
-        $this->up .= $i . '$this->db->disableForeignKeyChecks();' . "\n" . "\n";
+        $this->up .= $this->i . '$this->db->disableForeignKeyChecks();' . "\n" . "\n";
     }
 
     protected function enableForeignKeyChecks()
@@ -592,8 +584,7 @@ class UpdateMigrationCommand extends BaseCommand
         if (! $this->getOption('disableForeignKeyChecks')) {
             return;
         }
-        $i = '        ';
-        $this->up .= $i . '$this->db->enableForeignKeyChecks();' . "\n" . "\n";
+        $this->up .= $this->i . '$this->db->enableForeignKeyChecks();' . "\n" . "\n";
     }
 
     protected function isForced(): bool
