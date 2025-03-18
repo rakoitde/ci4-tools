@@ -112,8 +112,8 @@ class UpdateMigrationCommand extends BaseCommand
         }
         if ($m === 1) {
             CLI::write(' [1] ' . CLI::color('update 1st file (' . $this->migrations[0]->version . ') with create table', 'white'), 'green');
-            CLI::write(' [2] ' . CLI::color('create new file and update with alter table', 'white'), 'green');
-            $choices = ['', '0', '1', '2'];
+            CLI::write(' [3] ' . CLI::color('create new file and update with alter table', 'white'), 'green');
+            $choices = ['', '0', '1', '3'];
         }
         if ($m >= 2) {
             CLI::write(' [1] ' . CLI::color('update 1st file (' . $this->migrations[0]->version . ') with create table and remove the rest', 'white'), 'green');
@@ -135,62 +135,56 @@ class UpdateMigrationCommand extends BaseCommand
         if ($choice == '1') {
             $this->updateFirstMigrationFile();
         }
+
         if ($choice === '2') {
 
-            $migrations = $this->migrations[1] ?? null;
+            $lastMigrationIndex = count($this->migrations)-2;
+            $lastMigrationFile = $this->migrations[$lastMigrationIndex] ?? null;
 
-            $jsonDiff = $this->getTableStructureDiff();
-            $rearranged = $jsonDiff->getRearranged();
-
-            // Modified
-            foreach ($jsonDiff->getModifiedNew() ?? [] as $type => $array) {
-
-                CLI::write("Modified {$type}:", "yellow");
-
-                match ($type) {
-                    'fields' => $this->parseUpModifyColumns($array, $rearranged),
-                    default => $type . "\n",
-                };
-
-            }
-
-            // Add
-            foreach ($jsonDiff->getAdded() ?? [] as $type => $array) {
-
-                CLI::write("Added {$type}:", "yellow");
-
-                match ($type) {
-                    'fields' => $this->parseUpAddColumns($array, $rearranged),
-                    default => $type . "\n",
-                };
-
-                match ($type) {
-                    'fields' => $this->parseDownDropColumns($array, $rearranged),
-                    default => $type . "\n",
-                };
-
-            }
-
-
+            $jsonDiff = $this->getTableStructureDiff($lastMigrationFile);
+            $this->parseDiff($jsonDiff);
 
             $suffix = $this->getOption('suffix') ? 'Migration' : '';
             $name   = str_replace('Migration', '', $this->migrations[0]->name) . $suffix . $choice;
 
-            if (null === $migrations) {
+            if (null === $lastMigrationFile) {
                 command("make:migration {$name} --table {$this->table}");
                 $this->getMigrations();
             }
 
-            $migrations = $this->migrations[1] ?? null;
+            $lastMigrationIndex = count($this->migrations)-1;
+            $lastMigrationFile = $this->migrations[$lastMigrationIndex];
 
-            if (null !== $migrations) {
-                $this->updateMigrationFile($this->migrations[1]);
-                $this->saveTableInfoAsJson($this->migrations[1]);
+            if (null !== $lastMigrationFile) {
+                $this->updateMigrationFile($lastMigrationFile);
+                $this->saveTableInfoAsJson($lastMigrationFile);
+            }
+        }
+
+        if ($choice === '3') {
+
+            $lastMigrationFile = $this->lastMigrationFile() ?? null;
+
+            $jsonDiff = $this->getTableStructureDiff($lastMigrationFile);
+            $this->parseDiff($jsonDiff);
+
+            $suffix = $this->getOption('suffix') ? 'Migration' : '';
+            $migrationCount = count($this->migrations) + 1;
+            $name   = str_replace('Migration', '', $this->migrations[0]->name) . $suffix . $migrationCount;
+            
+            command("make:migration {$name} --table {$this->table}");
+            $this->getMigrations();
+            
+            $lastMigrationFile = $this->lastMigrationFile() ?? null;
+            
+            if (null !== $lastMigrationFile) {
+                $this->updateMigrationFile($lastMigrationFile);
+                $this->saveTableInfoAsJson($lastMigrationFile);
             }
         }
 
         CLI::write('Namespace: ' . CLI::color($this->modelInfo->namespace, 'white'), 'yellow');
-        CLI::write('Model:     ' . CLI::color($this->modelInfo->name, 'white'), 'yellow');
+        CLI::write('Model:     ' . CLI::color($this->modelInfo->name,      'white'), 'yellow');
         CLI::write('Namespace: ' . CLI::color($this->modelInfo->namespace . '\Database\Migrations\\', 'white'), 'yellow');
 
         if ($this->getOption('createTable') && ! $this->getOption('alterTable')) {
@@ -226,6 +220,11 @@ class UpdateMigrationCommand extends BaseCommand
         $modelInfo->name = $this->params[0] . $suffix;
 
         $this->model = model($modelInfo->name);
+
+        if (null === $this->model) {
+            CLI::write('The Model ' . $modelInfo->name . ' not exists.', 'red');
+            exit;
+        }
 
         $this->modelInfo = $modelInfo;
 
@@ -305,23 +304,109 @@ class UpdateMigrationCommand extends BaseCommand
         file_put_contents($json_file, $this->createJsonInfo());
     }
 
-    protected function getTableStructureDiff()
+    protected function getTableStructureDiff($migration)
     {
-            $originalFilePath = str_replace('.php', '.json', $this->migrations[0]->path);
+        #$originalFilePath = str_replace('.php', '.json', $this->migrations[0]->path);
+        $originalFilePath = str_replace('.php', '.json', $migration->path);
 
-            // Get the contents of the JSON file
-            $originalFile = file_get_contents($originalFilePath);
+        // Get the contents of the JSON file
+        $originalFile = file_get_contents($originalFilePath);
 
-            // Convert to array
-            $originalJson = json_decode($originalFile, true);
+        // Convert to array
+        $originalJson = json_decode($originalFile, true);
 
-            // Generate Diff
-            $jsonDiff = new JsonDiff(
-                $originalJson,
-                json_decode($this->createJsonInfo())
-            );
+        // Generate Diff
+        $jsonDiff = new JsonDiff(
+            $originalJson,
+            json_decode($this->createJsonInfo())
+        );
 
-            return $jsonDiff;
+        return $jsonDiff;
+    }
+
+    protected function parseDiff($jsonDiff) {
+
+        $rearranged = $jsonDiff->getRearranged();
+
+        // Modified
+        foreach ($jsonDiff->getModifiedNew() ?? [] as $type => $array) {
+
+            CLI::write("Modified {$type}:", "yellow");
+
+            $this->up .= match ($type) {
+                'fields' => $this->parseUpModifyColumns($array, $rearranged),
+                default => $type . "\n",
+            };
+
+        }
+
+        // Add
+        foreach ($jsonDiff->getAdded() ?? [] as $type => $array) {
+
+            CLI::write("Added {$type}:", "yellow");
+
+            // ##### UP ##### 
+
+            $this->up .= match ($type) {
+                'fields' => $this->parseAddColumns($array, $rearranged),
+                default => '',
+            };
+            
+            $this->up .= match ($type) {
+                'foreignkeys' => $this->parseAddForeignKeys($array),
+                default => '',
+            };
+            
+            $this->up .= match ($type) {
+                'indexes' => $this->parseAddKeys($array),
+                default => '',
+            };
+            
+            // ##### DOWN ##### 
+            
+            $this->down .= match ($type) {
+                'fields' => $this->parseDropColumns($array, $rearranged),
+                default => '',
+            };
+            
+            $this->down .= match ($type) {
+                'indexes' => $this->parseDropKeys($array),
+                default => '',
+            };
+            
+        }
+        
+        // Removed
+        foreach ($jsonDiff->getRemoved() ?? [] as $type => $array) {
+            
+            CLI::write("Removed {$type}:", "yellow");
+            
+            // ##### UP ##### 
+            
+            $this->up .= match ($type) {
+                'fields' => $this->parseDropColumns($array, $rearranged),
+                default => '',
+            };
+            
+            $this->up .= match ($type) {
+                'indexes' => $this->parseDropKeys($array),
+                default => '',
+            };
+            
+            // ##### DOWN ##### 
+            
+            $this->down .= match ($type) {
+                'fields' => $this->parseAddColumns($array, $rearranged),
+                default => '',
+            };
+            
+            $this->down .= match ($type) {
+                'indexes' => $this->parseAddKeys($array),
+                default => '',
+            };
+
+        }
+
     }
 
     protected function parseUpModifyColumns($modified, $rearranged)
@@ -341,36 +426,91 @@ class UpdateMigrationCommand extends BaseCommand
         return $this->up;
     }
 
-    protected function parseUpAddColumns($modified, $rearranged)
+    protected function parseAddColumns($modified, $rearranged)
     {
 
-        $fields = [];
+        $str = '';
 
-        foreach ($modified as $field => $attr) {
-            $fields[] = $rearranged->fields->$field;
-            CLI::write("Field: {$field}: " . json_encode($rearranged->fields->$field));
+        foreach ($modified as $fieldName) {
+            $field = $rearranged->fields->$fieldName;
+            CLI::write("Field: {$fieldName}: " . json_encode($rearranged->fields->$field));
+
+            $str .= $this->i . '$this->forge->addColumn(\'' . $this->model->table . '\', [' . "\n";
+
+            $str .= $this->i . "    '{$field->name}' => [" . "\n";
+            $str .= $this->i . "        'type'           => '{$field->type}'," . "\n";
+            if ($field->max_length) {
+                $str .= $this->i . "        'constraint'     => {$field->max_length}," . "\n";
+            }
+            // if ($field->unsigned) {
+            //     $up.= $i."        'unsigned'       => true,".PHP_EOL;
+            // }
+            if ($field->nullable) {
+                $str .= $this->i . "        'null'           => true," . "\n";
+            }
+            if (null !== $field->default) {
+                $str .= $this->i . "        'default'        => '{$field->default}'," . "\n";
+            }
+            if ($field->primary_key === 1) {
+                $str .= $this->i . "        'auto_increment' => true," . "\n";
+            }
+            $str .= $this->i . '    ],' . "\n";
         }
 
-        $this->up .= $this->i . '$this->forge->addColumn(\'' . $this->model->table . '\', [' . "\n";
-        $this->parseUpFields($fields);
-        $this->up .= $this->i . ']);' . "\n";
+        $str .= $this->i . ']);' . "\n";
 
-        return $this->up;
+        return $str;
     }
 
-    protected function parseDownDropColumns($modified, $rearranged)
+    protected function parseDropColumns($modified, $rearranged)
     {
 
-        $fields = [];
+        $down = '';
 
-        foreach ($modified as $field => $attr) {
-            $fields[] = $rearranged->fields->$field;
+        foreach ($modified as $field) {
             CLI::write("Field: {$field}: " . json_encode($rearranged->fields->$field));
+            $down .= $this->i . '$this->forge->dropColumn(\'' . $this->model->table . '\', \'' . $field . '\');' . "\n";
         }
 
-        $this->down .= $this->i . '$this->forge->dropColumn(\'' . $this->model->table . '\', \'' . $field . '\');' . "\n";
 
-        return $this->down;
+        return $down;
+    }
+
+    protected function parseAddForeignKeys($foreignkeys)
+    {
+        dd($foreignkeys);
+
+        // "FK_workflow_instance_workflow": {
+        //     "constraint_name": "FK_workflow_instance_workflow",
+        //     "table_name": "workflow_instance",
+        //     "column_name": [
+        //         "workflow_id"
+        //     ],
+        //     "foreign_table_name": "workflow",
+        //     "foreign_column_name": [
+        //         "id"
+        //     ],
+        //     "on_delete": "CASCADE",
+        //     "on_update": "CASCADE",
+        //     "match": "NONE"
+        // }
+
+        $up = '';
+
+        foreach ($foreignkeys as $foreignkey) {
+
+            // addForeignKey($fieldName, $tableName, $tableField[, $onUpdate = '', $onDelete = '', $fkName = ''])
+            // $forge->addForeignKey(['users_id', 'users_name'], 'users', ['id', 'name'], 'CASCADE', 'CASCADE', 'my_fk_name');
+            // gives CONSTRAINT `my_fk_name` FOREIGN KEY(`users_id`, `users_name`) REFERENCES `users`(`id`, `name`) ON DELETE CASCADE ON UPDATE CASCADE
+
+            $up .= $this->i . "\$this->forge->addForeignKey(['" . implode("', '", $foreignkey->column_name) . "'], '" . $foreignkey->foreign_table_name . "', '[" . implode("', '", $foreignkey->foreign_column_name) . "]', '" . $foreignkey->on_delete . "', '" . $foreignkey->on_update . "', '" . $foreignkey->constraint_name . "');" . "\n";
+
+        }
+
+        $up = '';
+
+        return $up . "\n";
+
     }
 
     protected function createJsonInfo()
@@ -494,6 +634,48 @@ class UpdateMigrationCommand extends BaseCommand
 
     }
 
+    protected function parseAddKeys($indexes)
+    {
+
+        $up = '';
+
+        foreach ($indexes as $index) {
+
+            $fields = is_array($index) ? $index['fields'] : $index->fields;
+            $name   = is_array($index) ? $index['name'] : $index->name;
+            $type   = is_array($index) ? $index['type'] : $index->type;
+
+            $fieldArray = "['" . implode("', '", $fields) . "']";
+
+            if ($type === "PRIMARY") {
+                $up.= $this->i . "\$this->forge->addKey(" . $fieldArray . ", true);" . "\n";
+            } elseif ($type === "INDEX") {
+                $up.= $this->i . "\$this->forge->addKey(" . $fieldArray . ", false, false, '" . $name . "');" . "\n";
+            } elseif ($type === "UNIQUE") {
+                $up.= $this->i . "\$this->forge->addKey(" . $fieldArray . ", false, true, '" . $name . "');" . "\n";
+            } else {
+                $up.= $this->i . "# No Parser for Type >". $type ."<" . "\n";
+                $up.= $this->i . "# INDEX: " . json_encode($index) . "\n";
+            }
+        }
+
+        return $up . "\n";
+    }
+
+    protected function parseDropKeys($indexes)
+    {
+
+        $down = '';
+
+        foreach ($indexes as $index) {
+            $name = is_array($index) ? $index['name'] : $index->name;
+            $down .= $this->i . '$this->forge->dropKey(\'' . $this->model->table . '\', \'' . $name . '\', false);' . "\n";
+        }
+
+        return $down . "\n";
+
+    }
+
     protected function parseUpForeignkeys()
     {
 
@@ -505,31 +687,10 @@ class UpdateMigrationCommand extends BaseCommand
 
             $up .= $this->i . "\$this->forge->addForeignKey('" . $foreignkey->column_name[0] . "', '" . $foreignkey->foreign_table_name . "', '" . $foreignkey->foreign_column_name[0] . "', '" . $foreignkey->on_delete . "', '" . $foreignkey->on_update . "', '" . $foreignkey->constraint_name . "');" . "\n";
 
-
-            #if ($foreignkey->primary_key === 1) {
-            #    $up = $this->i . "\$this->forge->addKey('" . $foreignkey->name . "', true);" . "\n";
-            #}
         }
 
         $this->up .= $up . "\n";
-        // "foreignkeys": {
-        //     "FK_idoit_client_log_idoit_client": {
-        //         "constraint_name": "FK_idoit_client_log_idoit_client",
-        //         "table_name": "idoit_client_log",
-        //         "column_name": [
-        //             "idoit_client_id"
-        //         ],
-        //         "foreign_table_name": "idoit_client",
-        //         "foreign_column_name": [
-        //             "id"
-        //         ],
-        //         "on_delete": "CASCADE",
-        //         "on_update": "CASCADE",
-        //         "match": "NONE"
-        //     }
-        // }
 
-        // $this->forge->addKey('blog_id', true);
     }
 
     protected function parseUpTable()
