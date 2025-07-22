@@ -81,7 +81,7 @@ if (Test-Path "$ROOT\vendor\codeigniter4\framework") {
 }
 
 # Delete conflicting branches
-foreach ($branch in "tatter/scratch", "tatter/patches") {
+foreach ($branch in "ci4-tools/scratch", "ci4-tools/patches") {
     if (git rev-parse --verify --quiet $branch) {
         if ((git log HEAD..$branch)) {
             Write-Error "Unmerged commits on $branch"
@@ -112,7 +112,7 @@ Write-Host "************************************"
 Write-Host "*             STAGING              *"
 Write-Host "************************************`n"
 
-git checkout --orphan tatter/scratch
+git checkout --orphan ci4-tools/scratch
 git rm -rf . | Out-Null
 git checkout $BASE -- .gitignore composer.* | Out-Null
 git clean -fd | Out-Null
@@ -174,7 +174,7 @@ Remove-Item composer.* -Force
 
 Write-Host "Create new working branch"
 # Create new working branch
-git checkout -b tatter/patches $BASE | Out-Null
+git checkout -b ci4-tools/patches $BASE | Out-Null
 composer install --no-scripts | Out-Null
 
 # MERGE
@@ -183,20 +183,20 @@ Write-Host "*              MERGING             *"
 Write-Host "************************************`n"
 
 $ErrorActionPreference = "Continue"
-git cherry-pick tatter/scratch
+git cherry-pick ci4-tools/scratch
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`n************************************"
     Write-Host "*              SUCCESS             *"
     Write-Host "************************************`n"
-    Write-Host "Patch successful! Updated files are on branch tatter/patches."
-    git branch -D tatter/scratch | Out-Null
+    Write-Host "Patch successful! Updated files are on branch ci4-tools/patches."
+    git branch -D ci4-tools/scratch | Out-Null
     exit 0
 } else {
     git status
     Write-Host "`n************************************"
     Write-Host "*            RESOLUTION            *"
     Write-Host "************************************`n"
-    Write-Host "Conflicts detected during patch! Resolve manually in branch tatter/patches."
-    Write-Host "After resolution, delete the old branch: tatter/scratch.`n"
+    Write-Host "Conflicts detected during patch! Resolve manually in branch ci4-tools/patches."
+    Write-Host "After resolution, delete the old branch: ci4-tools/scratch.`n"
     exit 1
 }
