@@ -136,3 +136,4 @@ nb-configuration.xml
 composer.lock
 .php-cs-fixer.cache
 *.lock
+composer.lock
