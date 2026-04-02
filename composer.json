@@ -36,9 +36,9 @@
 			"Tests\\Support\\": "tests/_support"
 		}
 	},
-    "bin": [
-        "patches/patch.ps1"
-	],
+  	"bin": [
+    	"bin/patch"
+  	],
 	"scripts": {
 		"analyze": "./vendor/bin/phpstan analyse src",
 		"style": "./vendor/bin/php-cs-fixer fix --verbose",
