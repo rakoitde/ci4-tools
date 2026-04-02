@@ -3,8 +3,6 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../vendor/autoload.php';
-
 final class PatchException extends RuntimeException
 {
 }
@@ -1177,6 +1175,4 @@ final class Application
     }
 }
 
-exit((new Vendor\Package\Application())->run($argv));
-
-## exit((new Application())->run($argv));
+exit((new Application())->run($argv));
